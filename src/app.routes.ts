@@ -9,6 +9,8 @@ import { Inventory } from '@/pages/dashboard/components/inventory';
 import { HackerspacePresence } from '@/pages/dashboard/components/hackerspace-presence';
 import { Settings } from '@/pages/dashboard/components/settings';
 import { Events } from '@/pages/dashboard/components/events';
+import { Announcements } from '@/pages/dashboard/components/announcements';
+import { Projects } from '@/pages/dashboard/components/projects';
 
 export const appRoutes: Routes = [
     {
@@ -16,10 +18,12 @@ export const appRoutes: Routes = [
         component: AppLayout,
         children: [
             { path: '', component: Dashboard },
+            { path: 'announcements', component: Announcements },
             { path: 'users', component: Users },
             { path: 'inventory', component: Inventory },
             { path: 'hackerspace-presence', component: HackerspacePresence },
             { path: 'events', component: Events },
+            { path: 'projects', component: Projects },
             { path: 'settings', component: Settings },
             { path: 'uikit', loadChildren: () => import('./app/pages/uikit/uikit.routes') },
             { path: 'documentation', component: Documentation },

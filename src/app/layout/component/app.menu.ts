@@ -25,8 +25,10 @@ export class AppMenu {
                 items: [
                     { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] },
                     { label: 'Users', icon: 'pi pi-fw pi-users', routerLink: ['/users'] },
+                    { label: 'Announcements', icon: 'pi pi-fw pi-megaphone', routerLink: ['/announcements'] },
                     { label: 'Inventory', icon: 'pi pi-fw pi-box', routerLink: ['/inventory'] },
                     { label: 'Events', icon: 'pi pi-fw pi-calendar', routerLink: ['/events'] },
+                    { label: 'Projects', icon: 'pi pi-fw pi-hammer', routerLink: ['/projects'] },
                     { label: 'Hackerspace Presence', icon: 'pi pi-fw pi-wave-pulse', routerLink: ['/hackerspace-presence'] },
                     { label: 'Settings', icon: 'pi pi-fw pi-cog', routerLink: ['/settings'] },
                 ]
