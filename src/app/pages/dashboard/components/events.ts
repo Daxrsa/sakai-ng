@@ -4,9 +4,10 @@ import { Component } from '@angular/core';
     selector: 'app-events',
     imports: [],
     template: `
-        <div class="grid grid-cols-12 gap-8">
-           <p>events works!</p>
+        <div class="flex flex-col gap-2">
+           <a href="https://js.devexpress.com/Angular/Demos/WidgetsGallery/Demo/Scheduler/GoogleCalendarIntegration/FluentBlueLight/">Google Calendar Integration</a>
+           <a href="https://fullcalendar.io/docs/angular">FullCalendar.io</a>
         </div>
     `
 })
-export class Events {}
+export class Events { }
