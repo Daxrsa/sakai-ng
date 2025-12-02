@@ -4,6 +4,11 @@ import { Dashboard } from './app/pages/dashboard/dashboard';
 import { Documentation } from './app/pages/documentation/documentation';
 import { Landing } from './app/pages/landing/landing';
 import { Notfound } from './app/pages/notfound/notfound';
+import { Users } from '@/pages/dashboard/components/users';
+import { Inventory } from '@/pages/dashboard/components/inventory';
+import { HackerspacePresence } from '@/pages/dashboard/components/hackerspace-presence';
+import { Settings } from '@/pages/dashboard/components/settings';
+import { Events } from '@/pages/dashboard/components/events';
 
 export const appRoutes: Routes = [
     {
@@ -11,6 +16,11 @@ export const appRoutes: Routes = [
         component: AppLayout,
         children: [
             { path: '', component: Dashboard },
+            { path: 'users', component: Users },
+            { path: 'inventory', component: Inventory },
+            { path: 'hackerspace-presence', component: HackerspacePresence },
+            { path: 'events', component: Events },
+            { path: 'settings', component: Settings },
             { path: 'uikit', loadChildren: () => import('./app/pages/uikit/uikit.routes') },
             { path: 'documentation', component: Documentation },
             { path: 'pages', loadChildren: () => import('./app/pages/pages.routes') }

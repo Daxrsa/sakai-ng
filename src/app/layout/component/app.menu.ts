@@ -22,7 +22,14 @@ export class AppMenu {
         this.model = [
             {
                 label: 'Home',
-                items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] }]
+                items: [
+                    { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] },
+                    { label: 'Users', icon: 'pi pi-fw pi-users', routerLink: ['/users'] },
+                    { label: 'Inventory', icon: 'pi pi-fw pi-box', routerLink: ['/inventory'] },
+                    { label: 'Events', icon: 'pi pi-fw pi-calendar', routerLink: ['/events'] },
+                    { label: 'Hackerspace Presence', icon: 'pi pi-fw pi-wave-pulse', routerLink: ['/hackerspace-presence'] },
+                    { label: 'Settings', icon: 'pi pi-fw pi-cog', routerLink: ['/settings'] },
+                ]
             },
             {
                 label: 'UI Components',
