@@ -4,9 +4,10 @@ import { Component } from '@angular/core';
     selector: 'app-users',
     imports: [],
     template: `
-        <div class="grid grid-cols-12 gap-8">
-           <p>users works!</p>
-        </div>
+    <div class="card">
+        <div class="font-semibold text-xl mb-4">Users Page</div>
+        <p>Use this page to start from scratch and place your custom content.</p>
+    </div>
     `
 })
-export class Users {}
+export class Users { }

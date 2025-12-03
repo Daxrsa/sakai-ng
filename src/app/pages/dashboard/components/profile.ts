@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
 
 @Component({
-    selector: 'app-settings',
+    selector: 'app-profile',
     imports: [],
     template: `
         <div class="card">
-           <p>settings works!</p>
+           <p>profile works!</p>
         </div>
     `
 })
-export class Settings {}
+export class Profile {}

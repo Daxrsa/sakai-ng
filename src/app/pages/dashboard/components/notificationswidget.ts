@@ -9,10 +9,6 @@ import { MenuModule } from 'primeng/menu';
     template: `<div class="card">
         <div class="flex items-center justify-between mb-6">
             <div class="font-semibold text-xl">Notifications</div>
-            <div>
-                <button pButton type="button" icon="pi pi-ellipsis-v" class="p-button-rounded p-button-text p-button-plain" (click)="menu.toggle($event)"></button>
-                <p-menu #menu [popup]="true" [model]="items"></p-menu>
-            </div>
         </div>
 
         <span class="block text-muted-color font-medium mb-4">TODAY</span>
@@ -73,8 +69,4 @@ import { MenuModule } from 'primeng/menu';
     </div>`
 })
 export class NotificationsWidget {
-    items = [
-        { label: 'Add New', icon: 'pi pi-fw pi-plus' },
-        { label: 'Remove', icon: 'pi pi-fw pi-trash' }
-    ];
 }

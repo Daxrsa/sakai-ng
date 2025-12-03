@@ -4,9 +4,10 @@ import { Component } from '@angular/core';
     selector: 'app-announcements',
     imports: [],
     template: `
-        <div class="grid grid-cols-12 gap-8">
-           <p>announcements works!</p>
-        </div>
+        <div class="card">
+        <div class="font-semibold text-xl mb-4">Announcements Page</div>
+        <p>Use this page to start from scratch and place your custom content.</p>
+    </div>
     `
 })
 export class Announcements {}

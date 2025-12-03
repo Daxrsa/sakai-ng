@@ -11,6 +11,8 @@ import { Settings } from '@/pages/dashboard/components/settings';
 import { Events } from '@/pages/dashboard/components/events';
 import { Announcements } from '@/pages/dashboard/components/announcements';
 import { Projects } from '@/pages/dashboard/components/projects';
+import { Profile } from '@/pages/dashboard/components/profile';
+import { Notifications } from '@/pages/dashboard/components/notifications';
 
 export const appRoutes: Routes = [
     {
@@ -18,6 +20,8 @@ export const appRoutes: Routes = [
         component: AppLayout,
         children: [
             { path: '', component: Dashboard },
+            { path: 'profile', component: Profile },
+            { path: 'notifications', component: Notifications },
             { path: 'announcements', component: Announcements },
             { path: 'users', component: Users },
             { path: 'inventory', component: Inventory },

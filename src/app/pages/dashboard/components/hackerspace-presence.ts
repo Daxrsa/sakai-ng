@@ -4,9 +4,10 @@ import { Component } from '@angular/core';
     selector: 'app-hackerspace-presence',
     imports: [],
     template: `
-        <div class="grid grid-cols-12 gap-8">
-           <p>hackerspace-presence works!</p>
-        </div>
+        <div class="card">
+        <div class="font-semibold text-xl mb-4">Hackerspace Presence Page</div>
+        <p>Use this page to start from scratch and place your custom content.</p>
+    </div>
     `
 })
 export class HackerspacePresence {}

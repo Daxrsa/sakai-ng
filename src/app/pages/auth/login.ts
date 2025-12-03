@@ -7,6 +7,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { RippleModule } from 'primeng/ripple';
 import { AppFloatingConfigurator } from '../../layout/component/app.floatingconfigurator';
+import { LayoutService } from '@/layout/service/layout.service';
 
 @Component({
     selector: 'app-login',
@@ -19,7 +20,7 @@ import { AppFloatingConfigurator } from '../../layout/component/app.floatingconf
                 <div style="border-radius: 56px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%)">
                     <div class="w-full bg-surface-0 dark:bg-surface-900 py-20 px-8 sm:px-20" style="border-radius: 53px">
                         <div class="text-center mb-8 flex flex-col items-center">  
-                            <img class="h-45" src="assets/images/sorra.png" alt="Sorra">
+                            <img class="h-45" [src]="layoutService.isDarkTheme() ? 'assets/images/sorra_dark_mode.png' : 'assets/images/sorra.png'" alt="Sorra">
                             <span class="text-muted-color font-medium">Log in to continue</span>
                         </div>
 
@@ -51,4 +52,6 @@ export class Login {
     password: string = '';
 
     checked: boolean = false;
+
+    constructor(public layoutService: LayoutService) { }
 }

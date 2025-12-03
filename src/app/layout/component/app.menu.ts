@@ -24,6 +24,8 @@ export class AppMenu {
                 label: 'Home',
                 items: [
                     { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] },
+                    { label: 'Profile', icon: 'pi pi-fw pi-user', routerLink: ['/profile'] },
+                    { label: 'Notifications', icon: 'pi pi-fw pi-inbox', routerLink: ['/notifications'] },
                     { label: 'Users', icon: 'pi pi-fw pi-users', routerLink: ['/users'] },
                     { label: 'Announcements', icon: 'pi pi-fw pi-megaphone', routerLink: ['/announcements'] },
                     { label: 'Inventory', icon: 'pi pi-fw pi-box', routerLink: ['/inventory'] },
@@ -31,6 +33,7 @@ export class AppMenu {
                     { label: 'Projects', icon: 'pi pi-fw pi-hammer', routerLink: ['/projects'] },
                     { label: 'Hackerspace Presence', icon: 'pi pi-fw pi-wave-pulse', routerLink: ['/hackerspace-presence'] },
                     { label: 'Settings', icon: 'pi pi-fw pi-cog', routerLink: ['/settings'] },
+                    { label: 'Log Out', icon: 'pi pi-fw pi-sign-out', routerLink: ['/auth/login']},
                 ]
             },
             {
