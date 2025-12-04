@@ -16,9 +16,9 @@ import { LayoutService } from '../service/layout.service';
             <button class="layout-menu-button layout-topbar-action" (click)="layoutService.onMenuToggle()">
                 <i class="pi pi-bars"></i>
             </button>
-            <a class="layout-topbar-logo" routerLink="/">
-                <img class="h-8 max-w-full" [src]="layoutService.isDarkTheme() ? 'assets/images/flossk_logo_dark_mode.png' : 'assets/images/logo.png'" alt="Flossk Logo">
-            </a>
+          
+<a class="layout-topbar-logo" routerLink="/">
+<img class="h-8 max-w-full" [src]="layoutService.isDarkTheme() ? 'assets/images/flossk_logo_dark_mode.png' : 'assets/images/logo.png'" alt="Flossk Logo"></a>
         </div>
 
         <div class="layout-topbar-actions">
