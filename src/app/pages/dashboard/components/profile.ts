@@ -84,7 +84,7 @@ import { PanelModule } from 'primeng/panel';
                     <div class="col-span-12 md:col-span-6 lg:col-span-3">
                         <div class="card h-full">
                             <div class="flex items-center gap-2 mb-4">
-                                <i class="pi pi-user text-xl text-primary"></i>
+                                <i style="font-size: 1.5rem" class="pi pi-user text-xl text-primary"></i>
                                 <h3 class="text-xl font-semibold m-0">Biography</h3>
                             </div>
                             <p-divider></p-divider>
@@ -98,22 +98,22 @@ import { PanelModule } from 'primeng/panel';
                     <div class="col-span-12 md:col-span-6 lg:col-span-3">
                         <div class="card h-full">
                             <div class="flex items-center gap-2 mb-4">
-                                <i class="pi pi-envelope text-xl text-primary"></i>
+                                <i style="font-size: 1.5rem" class="pi pi-envelope text-xl text-primary"></i>
                                 <h3 class="text-xl font-semibold m-0">Contact</h3>
                             </div>
                             <p-divider></p-divider>
                             
                             <div class="flex flex-col gap-4">
                                 <div class="flex items-center gap-3">
-                                    <i class="pi pi-phone text-muted-color"></i>
+                                    <i style="font-size: 1.5rem" class="pi pi-phone text-muted-color"></i>
                                     <span class="text-surface-900 dark:text-surface-0">+1 234 567 8900</span>
                                 </div>
                                 <div class="flex items-center gap-3">
-                                    <i class="pi pi-map-marker text-muted-color"></i>
+                                    <i style="font-size: 1.5rem" class="pi pi-map-marker text-muted-color"></i>
                                     <span class="text-surface-900 dark:text-surface-0">San Francisco, CA</span>
                                 </div>
                                 <div class="flex items-center gap-3">
-                                    <i class="pi pi-globe text-muted-color"></i>
+                                    <i style="font-size: 1.5rem" class="pi pi-globe text-muted-color"></i>
                                     <span class="text-surface-900 dark:text-surface-0">www.example.com</span>
                                 </div>
                             </div>
@@ -124,7 +124,7 @@ import { PanelModule } from 'primeng/panel';
                     <div class="col-span-12 md:col-span-6 lg:col-span-3">
                         <div class="card h-full">
                             <div class="flex items-center gap-2 mb-4">
-                                <i class="pi pi-star text-xl text-primary"></i>
+                                <i style="font-size: 1.5rem" class="pi pi-star text-xl text-primary"></i>
                                 <h3 class="text-xl font-semibold m-0">Skills & Expertise</h3>
                             </div>
                             <p-divider></p-divider>
@@ -142,7 +142,7 @@ import { PanelModule } from 'primeng/panel';
                     <div class="col-span-12 md:col-span-6 lg:col-span-3">
                         <div class="card h-full">
                             <div class="flex items-center gap-2 mb-4">
-                                <i class="pi pi-chart-bar text-xl text-primary"></i>
+                                <i style="font-size: 1.5rem" class="pi pi-chart-bar text-xl text-primary"></i>
                                 <h3 class="text-xl font-semibold m-0">Statistics</h3>
                             </div>
                             <p-divider></p-divider>
