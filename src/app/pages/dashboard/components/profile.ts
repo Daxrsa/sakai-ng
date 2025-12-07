@@ -7,10 +7,12 @@ import { ChipModule } from 'primeng/chip';
 import { BadgeModule } from 'primeng/badge';
 import { DividerModule } from 'primeng/divider';
 import { PanelModule } from 'primeng/panel';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { AvatarGroupModule } from 'primeng/avatargroup';
 
 @Component({
     selector: 'app-profile',
-    imports: [CommonModule, AvatarModule, ButtonModule, TagModule, ChipModule, BadgeModule, DividerModule, PanelModule],
+    imports: [CommonModule, AvatarModule, ButtonModule, TagModule, ChipModule, BadgeModule, DividerModule, PanelModule, ProgressBarModule, AvatarGroupModule],
     template: `
         <div class="grid grid-cols-12 gap-8">
             <!-- Profile Header Card -->
@@ -29,19 +31,13 @@ import { PanelModule } from 'primeng/panel';
                                 <!-- Status Badge -->
                                 <div class="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 md:bottom-4 md:right-4">
                                     <span 
-                                        [class]="userProfile.status === 'Active' ? 'bg-green-500' : 'bg-red-500'"
+                                        [class]="userProfile.activity === 'Active' ? 'bg-green-500' : 'bg-red-500'"
                                         class="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full border-4 border-surface-0 dark:border-surface-900 shadow-md"
                                     >
-                                        <i [class]="userProfile.status === 'Active'" class="text-white text-base sm:text-lg md:text-xl"></i>
+                                        <i [class]="userProfile.activity === 'Active'" class="text-white text-base sm:text-lg md:text-xl"></i>
                                     </span>
                                 </div>
                             </div>
-                            <!-- Status Tag -->
-                            <p-tag 
-                                [value]="userProfile.status" 
-                                [severity]="userProfile.status === 'Active' ? 'success' : 'danger'"
-                                styleClass="mt-4"
-                            ></p-tag>
                         </div>
                         
                         <!-- Profile Information -->
@@ -83,7 +79,7 @@ import { PanelModule } from 'primeng/panel';
                     <!-- Biography Card -->
                     <div class="col-span-12 md:col-span-6 lg:col-span-3">
                         <div class="card h-full">
-                            <div class="flex items-center gap-2 mb-4">
+                            <div class="flex items-baseline gap-2 mb-4">
                                 <i style="font-size: 1.5rem" class="pi pi-user text-xl text-primary"></i>
                                 <h3 class="text-xl font-semibold m-0">Biography</h3>
                             </div>
@@ -97,7 +93,7 @@ import { PanelModule } from 'primeng/panel';
                     <!-- Contact Card -->
                     <div class="col-span-12 md:col-span-6 lg:col-span-3">
                         <div class="card h-full">
-                            <div class="flex items-center gap-2 mb-4">
+                            <div class="flex items-baseline gap-2 mb-4">
                                 <i style="font-size: 1.5rem" class="pi pi-envelope text-xl text-primary"></i>
                                 <h3 class="text-xl font-semibold m-0">Contact</h3>
                             </div>
@@ -123,7 +119,7 @@ import { PanelModule } from 'primeng/panel';
                     <!-- Skills Card -->
                     <div class="col-span-12 md:col-span-6 lg:col-span-3">
                         <div class="card h-full">
-                            <div class="flex items-center gap-2 mb-4">
+                            <div class="flex items-baseline gap-2 mb-4">
                                 <i style="font-size: 1.5rem" class="pi pi-star text-xl text-primary"></i>
                                 <h3 class="text-xl font-semibold m-0">Skills & Expertise</h3>
                             </div>
@@ -141,7 +137,7 @@ import { PanelModule } from 'primeng/panel';
                     <!-- Statistics Card -->
                     <div class="col-span-12 md:col-span-6 lg:col-span-3">
                         <div class="card h-full">
-                            <div class="flex items-center gap-2 mb-4">
+                            <div style="font-size: 1.5rem" class="flex items-baseline gap-2 mb-4">
                                 <i style="font-size: 1.5rem" class="pi pi-chart-bar text-xl text-primary"></i>
                                 <h3 class="text-xl font-semibold m-0">Statistics</h3>
                             </div>
@@ -174,6 +170,70 @@ import { PanelModule } from 'primeng/panel';
                     </div>
                 </div>
             </div>
+
+            <!-- Projects Section -->
+            <div class="col-span-12">
+                <div class="card">
+                    <div class="flex items-baseline gap-2 mb-6">
+                        <i style="font-size: 1.5rem" class="pi pi-folder text-2xl text-primary"></i>
+                        <h3 class="text-2xl font-semibold m-0">My Projects</h3>
+                    </div>
+                    
+                    <div class="grid grid-cols-12 gap-4">
+                        <div *ngFor="let project of userProjects" class="col-span-12 md:col-span-6 lg:col-span-4">
+                            <div class="border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow">
+                                <div class="flex justify-between items-start mb-3">
+                                    <h4 class="text-lg font-semibold text-surface-900 dark:text-surface-0 m-0">
+                                        {{ project.name }}
+                                    </h4>
+                                    <p-tag 
+                                        [value]="project.status" 
+                                        [severity]="getStatusSeverity(project.status)"
+                                    ></p-tag>
+                                </div>
+                                
+                                <p class="text-surface-700 dark:text-surface-300 text-sm mb-3 line-clamp-2">
+                                    {{ project.description }}
+                                </p>
+                                
+                                <div class="flex items-center gap-2 text-xs text-muted-color mb-3">
+                                    <i class="pi pi-user"></i>
+                                    <span>{{ project.role }}</span>
+                                </div>
+                                
+                                <div class="mb-3" *ngIf="project.status === 'in-progress'">
+                                    <div class="flex justify-between text-xs mb-2">
+                                        <span class="text-muted-color">Progress</span>
+                                        <span class="font-semibold">{{ project.progress }}%</span>
+                                    </div>
+                                    <p-progressbar [value]="project.progress" [showValue]="false"></p-progressbar>
+                                </div>
+                                
+                                <p-divider></p-divider>
+                                
+                                <div class="mt-3">
+                                    <p class="text-xs text-muted-color mb-2">Team</p>
+                                    <p-avatargroup>
+                                        <p-avatar 
+                                            *ngFor="let member of project.team.slice(0, 3)" 
+                                            [image]="member.avatar" 
+                                            shape="circle"
+                                            size="normal"
+                                        ></p-avatar>
+                                        <p-avatar 
+                                            *ngIf="project.team.length > 3"
+                                            [label]="'+' + (project.team.length - 3)" 
+                                            shape="circle"
+                                            size="normal"
+                                            [style]="{'background-color': 'var(--primary-color)', 'color': 'var(--primary-color-text)'}"
+                                        ></p-avatar>
+                                    </p-avatargroup>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     `
 })
@@ -184,10 +244,60 @@ export class Profile {
         lastName: 'Elsner',
         email: 'amy.elsner@flossk.com',
         dateJoined: 'January 15, 2023',
-        status: 'Inactive',
         activity: 'Online',
         role: 'Board Member',
         biography: 'Passionate software engineer with over 8 years of experience in full-stack development. Specialized in Angular, TypeScript, and cloud technologies. Love contributing to open-source projects and mentoring junior developers. Always eager to learn new technologies and improve code quality.',
         skills: ['Angular', 'TypeScript', 'JavaScript', 'Node.js', 'Python', 'Docker', 'AWS', 'MongoDB', 'PostgreSQL', 'Git', 'CI/CD', 'Agile']
     };
+
+    userProjects = [
+        {
+            id: 1,
+            name: 'Smart Home Automation System',
+            description: 'Develop an IoT-based home automation system using Arduino and Raspberry Pi to control lights, temperature, and security.',
+            status: 'in-progress',
+            role: 'Project Lead',
+            progress: 65,
+            team: [
+                { name: 'Amy Elsner', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png' },
+                { name: 'Bernardo Dominic', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/bernardodominic.png' },
+                { name: 'Anna Fali', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/annafali.png' },
+                { name: 'Asiya Javayant', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/asiyajavayant.png' }
+            ]
+        },
+        {
+            id: 2,
+            name: '3D Printer Upgrade Project',
+            description: 'Upgrade existing 3D printers with auto-leveling sensors and improved cooling systems.',
+            status: 'in-progress',
+            role: 'Contributor',
+            progress: 40,
+            team: [
+                { name: 'Elwin Sharvill', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/elwinsharvill.png' },
+                { name: 'Ioni Bowcher', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/ionibowcher.png' }
+            ]
+        },
+        {
+            id: 3,
+            name: 'Robotics Competition Team',
+            description: 'Build and program a robot for the regional robotics competition in March 2026.',
+            status: 'completed',
+            role: 'Programmer',
+            progress: 100,
+            team: [
+                { name: 'Bernardo Dominic', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/bernardodominic.png' },
+                { name: 'Amy Elsner', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png' },
+                { name: 'Elwin Sharvill', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/elwinsharvill.png' }
+            ]
+        }
+    ];
+
+    getStatusSeverity(status: string): 'success' | 'info' | 'warn' {
+        switch (status) {
+            case 'completed': return 'success';
+            case 'in-progress': return 'info';
+            case 'upcoming': return 'warn';
+            default: return 'info';
+        }
+    }
 }

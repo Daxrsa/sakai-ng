@@ -74,20 +74,54 @@ interface Announcement {
             </div>
         </p-dialog>
         
+        <p-dialog [(visible)]="viewDialogVisible" [header]="selectedAnnouncement?.title" [modal]="true" [style]="{width: '50rem'}">
+            <div *ngIf="selectedAnnouncement" class="flex flex-col gap-4">
+                <!-- Author Info -->
+                <div class="flex items-center gap-3 mb-2">
+                    <p-avatar [image]="selectedAnnouncement.authorAvatar" shape="circle" size="large"></p-avatar>
+                    <div>
+                        <div class="font-semibold text-surface-900 dark:text-surface-0">{{ selectedAnnouncement.author }}</div>
+                        <div class="text-sm text-muted-color">{{ selectedAnnouncement.date }}</div>
+                    </div>
+                </div>
+                
+                <!-- Tags -->
+                <div class="flex items-center gap-2">
+                    <p-tag 
+                        [value]="selectedAnnouncement.priority.toUpperCase()" 
+                        [severity]="getPrioritySeverity(selectedAnnouncement.priority)"
+                    ></p-tag>
+                    <p-tag [value]="selectedAnnouncement.category"></p-tag>
+                    <p-tag icon="pi pi-eye" [value]="selectedAnnouncement.views + ' views'" severity="secondary"></p-tag>
+                </div>
+                
+                <p-divider></p-divider>
+                
+                <!-- Content -->
+                <div class="text-surface-700 dark:text-surface-300 leading-relaxed">
+                    {{ selectedAnnouncement.content }}
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-2 mt-6">
+                <p-button label="Close" severity="secondary" (onClick)="viewDialogVisible = false" />
+            </div>
+        </p-dialog>
+        
         <div class="card">
-            <div class="flex justify-between items-center mb-6">
-                <div class="font-semibold text-xl">Announcements</div>
+            <div class="flex justify-end items-center mb-6">
                 <p-button label="New Announcement" icon="pi pi-plus" size="small" (onClick)="openAddDialog()"></p-button>
             </div>
 
             <div class="flex flex-col gap-6">
                 <div *ngFor="let announcement of announcements" class="p-4 border border-surface rounded-lg hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors">
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="flex items-center gap-3">
-                            <div>
-                                <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-0 m-0 mb-1">
-                                    {{ announcement.title }}
-                                </h3>
+                    <div class="cursor-pointer" (click)="viewAnnouncement(announcement)">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex items-center gap-3">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-0 m-0 mb-1">
+                                        {{ announcement.title }}
+                                    </h3>
                                 <div class="flex items-center gap-2 text-sm text-muted-color">
                                     <span>{{ announcement.author }}</span>
                                     <span>•</span>
@@ -104,11 +138,16 @@ interface Announcement {
                             ></p-tag>
                             <p-tag [value]="announcement.category"></p-tag>
                         </div>
-                    </div>
+                        </div>
 
-                    <p class="text-surface-700 dark:text-surface-300 mb-4 leading-relaxed">
-                        {{ announcement.content }}
-                    </p>
+                        <p class="text-surface-700 dark:text-surface-300 mb-4 leading-relaxed">
+                            {{ announcement.content.length > 200 ? announcement.content.substring(0, 200) + '...' : announcement.content }}
+                        </p>
+                        
+                        <span *ngIf="announcement.content.length > 200" class="text-primary text-sm font-semibold">
+                            Read more →
+                        </span>
+                    </div>
 
                     <p-divider></p-divider>
 
@@ -131,8 +170,10 @@ export class Announcements {
     constructor(private confirmationService: ConfirmationService) {}
 
     dialogVisible = false;
+    viewDialogVisible = false;
     dialogMode: 'add' | 'edit' = 'add';
     currentAnnouncement: Announcement = this.getEmptyAnnouncement();
+    selectedAnnouncement: Announcement | null = null;
     
     categoryOptions = [
         { label: 'General', value: 'General' },
@@ -257,6 +298,13 @@ export class Announcements {
             }
         }
         this.dialogVisible = false;
+    }
+
+    viewAnnouncement(announcement: Announcement) {
+        this.selectedAnnouncement = announcement;
+        // Increment view count
+        announcement.views++;
+        this.viewDialogVisible = true;
     }
 
     confirmDelete(announcement: Announcement) {

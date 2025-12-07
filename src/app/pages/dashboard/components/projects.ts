@@ -245,7 +245,7 @@ interface Project {
                     </div>
 
                     <div class="col-span-12 lg:col-span-4">
-                        <div class="border border-surface rounded-lg p-4">
+                       
                             <h3 class="text-lg font-semibold mb-4">Team Members</h3>
                             <div class="flex flex-col gap-3">
                                 <div *ngFor="let member of selectedProject.participants" class="flex items-center gap-3">
@@ -255,7 +255,7 @@ interface Project {
                                         <p class="text-sm text-muted-color m-0">{{ member.role }}</p>
                                     </div>
                                 </div>
-                            </div>
+                           
                         </div>
                     </div>
                 </div>
@@ -373,7 +373,7 @@ export class Projects {
                     id: 2,
                     title: 'UI/UX Design',
                     description: 'Create wireframes and high-fidelity mockups',
-                    status: 'todo',
+                    status: 'completed',
                     assignedTo: { name: 'Asiya Javayant', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/asiyajavayant.png', role: 'Lead Designer' },
                     progress: 0
                 }
@@ -418,7 +418,7 @@ export class Projects {
     }
 
     getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'secondary' {
-        switch(status) {
+        switch (status) {
             case 'completed': return 'success';
             case 'in-progress': return 'info';
             case 'upcoming': return 'warn';
@@ -427,7 +427,7 @@ export class Projects {
     }
 
     getObjectiveStatusSeverity(status: string): 'success' | 'info' | 'secondary' {
-        switch(status) {
+        switch (status) {
             case 'completed': return 'success';
             case 'in-progress': return 'info';
             case 'todo': return 'secondary';
@@ -449,7 +449,7 @@ export class Projects {
             const project = this.projects.find(p => p.id === this.draggedProject!.id);
             if (project && project.status !== newStatus) {
                 project.status = newStatus;
-                
+
                 // Update progress based on status
                 if (newStatus === 'upcoming') {
                     project.progress = 0;
