@@ -7,6 +7,7 @@ import { AvatarGroupModule } from 'primeng/avatargroup';
 import { DividerModule } from 'primeng/divider';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TabsModule } from 'primeng/tabs';
+import { DragDropModule } from 'primeng/dragdrop';
 
 interface Member {
     name: string;
@@ -37,7 +38,7 @@ interface Project {
 
 @Component({
     selector: 'app-projects',
-    imports: [CommonModule, ButtonModule, TagModule, AvatarModule, AvatarGroupModule, DividerModule, ProgressBarModule, TabsModule],
+    imports: [CommonModule, ButtonModule, TagModule, AvatarModule, AvatarGroupModule, DividerModule, ProgressBarModule, TabsModule, DragDropModule],
     template: `
         <div class="card">
             <div class="flex justify-between items-center mb-6">
@@ -49,13 +50,13 @@ interface Project {
             <div class="grid grid-cols-12 gap-4">
                 <!-- Upcoming Column -->
                 <div class="col-span-12 md:col-span-4">
-                    <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4">
+                    <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4" pDroppable="projects" (onDrop)="onDrop($event, 'upcoming')">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-semibold text-lg m-0">Upcoming</h3>
                             <p-tag [value]="getProjectsByStatus('upcoming').length.toString()" severity="warn"></p-tag>
                         </div>
-                        <div class="flex flex-col gap-3">
-                            <div *ngFor="let project of getProjectsByStatus('upcoming')" class="bg-surface-0 dark:bg-surface-900 border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer" (click)="selectedProject = project">
+                        <div class="flex flex-col gap-3 min-h-32">
+                            <div *ngFor="let project of getProjectsByStatus('upcoming')" pDraggable="projects" (onDragStart)="dragStart(project)" (onDragEnd)="dragEnd()" class="bg-surface-0 dark:bg-surface-900 border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow cursor-move" (click)="selectedProject = project">
                                 <div class="flex justify-between items-start mb-3">
                                     <h4 class="text-base font-semibold text-surface-900 dark:text-surface-0 m-0">
                                         {{ project.name }}
@@ -98,13 +99,13 @@ interface Project {
 
                 <!-- In Progress Column -->
                 <div class="col-span-12 md:col-span-4">
-                    <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4">
+                    <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4" pDroppable="projects" (onDrop)="onDrop($event, 'in-progress')">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-semibold text-lg m-0">In Progress</h3>
                             <p-tag [value]="getProjectsByStatus('in-progress').length.toString()" severity="info"></p-tag>
                         </div>
-                        <div class="flex flex-col gap-3">
-                            <div *ngFor="let project of getProjectsByStatus('in-progress')" class="bg-surface-0 dark:bg-surface-900 border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer" (click)="selectedProject = project">
+                        <div class="flex flex-col gap-3 min-h-32">
+                            <div *ngFor="let project of getProjectsByStatus('in-progress')" pDraggable="projects" (onDragStart)="dragStart(project)" (onDragEnd)="dragEnd()" class="bg-surface-0 dark:bg-surface-900 border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow cursor-move" (click)="selectedProject = project">
                                 <div class="flex justify-between items-start mb-3">
                                     <h4 class="text-base font-semibold text-surface-900 dark:text-surface-0 m-0">
                                         {{ project.name }}
@@ -150,13 +151,13 @@ interface Project {
 
                 <!-- Completed Column -->
                 <div class="col-span-12 md:col-span-4">
-                    <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4">
+                    <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4" pDroppable="projects" (onDrop)="onDrop($event, 'completed')">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-semibold text-lg m-0">Completed</h3>
                             <p-tag [value]="getProjectsByStatus('completed').length.toString()" severity="success"></p-tag>
                         </div>
-                        <div class="flex flex-col gap-3">
-                            <div *ngFor="let project of getProjectsByStatus('completed')" class="bg-surface-0 dark:bg-surface-900 border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer" (click)="selectedProject = project">
+                        <div class="flex flex-col gap-3 min-h-32">
+                            <div *ngFor="let project of getProjectsByStatus('completed')" pDraggable="projects" (onDragStart)="dragStart(project)" (onDragEnd)="dragEnd()" class="bg-surface-0 dark:bg-surface-900 border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow cursor-move" (click)="selectedProject = project">
                                 <div class="flex justify-between items-start mb-3">
                                     <h4 class="text-base font-semibold text-surface-900 dark:text-surface-0 m-0">
                                         {{ project.name }}
@@ -264,6 +265,7 @@ interface Project {
 })
 export class Projects {
     selectedProject: Project | null = null;
+    draggedProject: Project | null = null;
 
     projects: Project[] = [
         {
@@ -430,6 +432,33 @@ export class Projects {
             case 'in-progress': return 'info';
             case 'todo': return 'secondary';
             default: return 'secondary';
+        }
+    }
+
+    dragStart(project: Project) {
+        this.draggedProject = project;
+    }
+
+    dragEnd() {
+        this.draggedProject = null;
+    }
+
+    onDrop(event: any, newStatus: 'upcoming' | 'in-progress' | 'completed') {
+        if (this.draggedProject) {
+            // Update the project status
+            const project = this.projects.find(p => p.id === this.draggedProject!.id);
+            if (project && project.status !== newStatus) {
+                project.status = newStatus;
+                
+                // Update progress based on status
+                if (newStatus === 'upcoming') {
+                    project.progress = 0;
+                } else if (newStatus === 'completed') {
+                    project.progress = 100;
+                }
+                // For 'in-progress', keep the current progress
+            }
+            this.draggedProject = null;
         }
     }
 }
