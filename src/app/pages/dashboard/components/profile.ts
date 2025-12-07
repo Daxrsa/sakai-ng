@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
@@ -9,11 +10,92 @@ import { DividerModule } from 'primeng/divider';
 import { PanelModule } from 'primeng/panel';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { TextareaModule } from 'primeng/textarea';
+import { FileUploadModule } from 'primeng/fileupload';
+import { SelectModule } from 'primeng/select';
 
 @Component({
     selector: 'app-profile',
-    imports: [CommonModule, AvatarModule, ButtonModule, TagModule, ChipModule, BadgeModule, DividerModule, PanelModule, ProgressBarModule, AvatarGroupModule],
+    imports: [CommonModule, FormsModule, AvatarModule, ButtonModule, TagModule, ChipModule, BadgeModule, DividerModule, PanelModule, ProgressBarModule, AvatarGroupModule, DialogModule, InputTextModule, TextareaModule, FileUploadModule, SelectModule],
     template: `
+        <p-dialog [(visible)]="editDialogVisible" header="Edit Profile" [modal]="true" [style]="{width: '50rem'}">
+            <div class="flex flex-col gap-4">
+                <!-- Profile Picture Upload -->
+                <div class="flex flex-col items-center gap-4 mb-4">
+                    <img 
+                        [src]="editProfile.picture" 
+                        alt="Profile Picture"
+                        class="w-32 h-32 object-cover rounded-full border-4 border-surface-200 dark:border-surface-700"
+                    >
+                    <p-fileupload 
+                        mode="basic" 
+                        chooseLabel="Change Picture" 
+                        accept="image/*"
+                        [maxFileSize]="1000000"
+                        (onSelect)="onFileSelect($event)"
+                        [auto]="true"
+                    ></p-fileupload>
+                </div>
+                
+                <p-divider></p-divider>
+                
+                <!-- Form Fields -->
+                <div class="grid grid-cols-12 gap-4">
+                    <div class="col-span-6">
+                        <label for="firstName" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">First Name</label>
+                        <input pInputText id="firstName" [(ngModel)]="editProfile.firstName" class="w-full" />
+                    </div>
+                    
+                    <div class="col-span-6">
+                        <label for="lastName" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Last Name</label>
+                        <input pInputText id="lastName" [(ngModel)]="editProfile.lastName" class="w-full" />
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="email" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Email</label>
+                    <input pInputText id="email" [(ngModel)]="editProfile.email" type="email" class="w-full" />
+                </div>
+                
+                <div>
+                    <label for="role" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Role</label>
+                    <p-select id="role" [(ngModel)]="editProfile.role" [options]="roleOptions" placeholder="Select Role" class="w-full" />
+                </div>
+                
+                <div>
+                    <label for="biography" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Biography</label>
+                    <textarea pInputTextarea id="biography" [(ngModel)]="editProfile.biography" [rows]="4" class="w-full"></textarea>
+                </div>
+                
+                <div>
+                    <label for="phone" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Phone</label>
+                    <input pInputText id="phone" [(ngModel)]="editProfile.phone" class="w-full" />
+                </div>
+                
+                <div>
+                    <label for="location" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Location</label>
+                    <input pInputText id="location" [(ngModel)]="editProfile.location" class="w-full" />
+                </div>
+                
+                <div>
+                    <label for="website" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Website</label>
+                    <input pInputText id="website" [(ngModel)]="editProfile.website" class="w-full" />
+                </div>
+                
+                <div>
+                    <label for="skills" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Skills (comma-separated)</label>
+                    <input pInputText id="skills" [(ngModel)]="skillsString" placeholder="e.g. Angular, TypeScript, Python" class="w-full" />
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-2 mt-6">
+                <p-button label="Cancel" severity="secondary" (onClick)="editDialogVisible = false" />
+                <p-button label="Save Changes" (onClick)="saveProfile()" />
+            </div>
+        </p-dialog>
+        
         <div class="grid grid-cols-12 gap-8">
             <!-- Profile Header Card -->
             <div class="col-span-12">
@@ -64,7 +146,7 @@ import { AvatarGroupModule } from 'primeng/avatargroup';
                                 </div>
                                 
                                 <div class="flex gap-2">
-                                    <p-button label="Edit" icon="pi pi-pencil" outlined></p-button>
+                                    <p-button label="Edit" icon="pi pi-pencil" outlined (onClick)="openEditDialog()"></p-button>
                                     <p-button label="Settings" icon="pi pi-cog" severity="secondary" outlined></p-button>
                                 </div>
                             </div>
@@ -238,6 +320,16 @@ import { AvatarGroupModule } from 'primeng/avatargroup';
     `
 })
 export class Profile {
+    editDialogVisible = false;
+    editProfile: any = {};
+    skillsString = '';
+    
+    roleOptions = [
+        { label: 'Member', value: 'Member' },
+        { label: 'Board Member', value: 'Board Member' },
+        { label: 'Admin', value: 'Admin' }
+    ];
+    
     userProfile = {
         picture: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png',
         firstName: 'Amy',
@@ -247,7 +339,10 @@ export class Profile {
         activity: 'Online',
         role: 'Board Member',
         biography: 'Passionate software engineer with over 8 years of experience in full-stack development. Specialized in Angular, TypeScript, and cloud technologies. Love contributing to open-source projects and mentoring junior developers. Always eager to learn new technologies and improve code quality.',
-        skills: ['Angular', 'TypeScript', 'JavaScript', 'Node.js', 'Python', 'Docker', 'AWS', 'MongoDB', 'PostgreSQL', 'Git', 'CI/CD', 'Agile']
+        skills: ['Angular', 'TypeScript', 'JavaScript', 'Node.js', 'Python', 'Docker', 'AWS', 'MongoDB', 'PostgreSQL', 'Git', 'CI/CD', 'Agile'],
+        phone: '+1 234 567 8900',
+        location: 'San Francisco, CA',
+        website: 'www.example.com'
     };
 
     userProjects = [
@@ -299,5 +394,36 @@ export class Profile {
             case 'upcoming': return 'warn';
             default: return 'info';
         }
+    }
+    
+    openEditDialog() {
+        // Clone the current profile for editing
+        this.editProfile = { ...this.userProfile };
+        this.skillsString = this.userProfile.skills.join(', ');
+        this.editDialogVisible = true;
+    }
+    
+    onFileSelect(event: any) {
+        const file = event.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e: any) => {
+                this.editProfile.picture = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+    
+    saveProfile() {
+        // Parse skills string into array
+        this.editProfile.skills = this.skillsString
+            .split(',')
+            .map(skill => skill.trim())
+            .filter(skill => skill.length > 0);
+        
+        // Update the user profile
+        Object.assign(this.userProfile, this.editProfile);
+        
+        this.editDialogVisible = false;
     }
 }
