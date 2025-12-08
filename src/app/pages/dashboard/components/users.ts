@@ -28,7 +28,7 @@ interface User {
     template: `
     <p-confirmdialog></p-confirmdialog>
     
-    <p-dialog [(visible)]="editDialogVisible" [header]="'Edit User'" [modal]="true" [style]="{width: '450px'}">
+    <p-dialog [(visible)]="editDialogVisible" [header]="'Edit User'" [modal]="true" [style]="{width: '450px'}" [contentStyle]="{'max-height': '70vh', 'overflow': 'visible'}" appendTo="body" [maximizable]="true">
         <div class="flex flex-col gap-4" *ngIf="selectedUser">
             <div class="flex flex-col gap-2">
                 <label for="name">Name</label>

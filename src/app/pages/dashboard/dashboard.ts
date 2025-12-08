@@ -24,8 +24,7 @@ interface JoinRequest {
     imports: [CommonModule, StatsWidget, TableModule, ButtonModule, TagModule, DialogModule, DividerModule],
     template: `
         <div class="grid grid-cols-12 gap-8">
-            <!-- <app-stats-widget class="contents" /> -->
-            
+            <!-- <app-stats-widget class="contents" /> -->            
             <!-- Join Requests Section -->
             <div class="col-span-12">
                 <div class="card">
@@ -99,7 +98,7 @@ interface JoinRequest {
         </div>
         
         <!-- View Request Dialog -->
-        <p-dialog [(visible)]="viewDialogVisible" [header]="selectedRequest ? selectedRequest.firstName + ' ' + selectedRequest.lastName : 'Request Details'" [modal]="true" [style]="{width: '50rem'}">
+        <p-dialog [(visible)]="viewDialogVisible" [header]="selectedRequest ? selectedRequest.firstName + ' ' + selectedRequest.lastName : 'Request Details'" [modal]="true" [style]="{width: '50rem'}" appendTo="body">
             <div *ngIf="selectedRequest" class="flex flex-col gap-4">
                 <div class="grid grid-cols-12 gap-4">
                     <div class="col-span-6">

@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { AvatarModule } from 'primeng/avatar';
@@ -8,6 +9,13 @@ import { DividerModule } from 'primeng/divider';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TabsModule } from 'primeng/tabs';
 import { DragDropModule } from 'primeng/dragdrop';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { TextareaModule } from 'primeng/textarea';
+import { SelectModule } from 'primeng/select';
+import { DatePickerModule } from 'primeng/datepicker';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
 
 interface Member {
     name: string;
@@ -38,12 +46,56 @@ interface Project {
 
 @Component({
     selector: 'app-projects',
-    imports: [CommonModule, ButtonModule, TagModule, AvatarModule, AvatarGroupModule, DividerModule, ProgressBarModule, TabsModule, DragDropModule],
+    imports: [CommonModule, FormsModule, ButtonModule, TagModule, AvatarModule, AvatarGroupModule, DividerModule, ProgressBarModule, TabsModule, DragDropModule, DialogModule, InputTextModule, TextareaModule, SelectModule, DatePickerModule, ConfirmDialogModule],
+    providers: [ConfirmationService],
     template: `
+        <p-confirmdialog></p-confirmdialog>
+        
+        <p-dialog [(visible)]="dialogVisible" [header]="dialogMode === 'add' ? 'New Project' : 'Edit Project'" [modal]="true" [style]="{width: '50rem'}" [contentStyle]="{'max-height': '70vh', 'overflow': 'visible'}" appendTo="body" [maximizable]="true">
+            <div class="flex flex-col gap-4">
+                <div>
+                    <label for="projectName" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Project Name</label>
+                    <input pInputText id="projectName" [(ngModel)]="currentProject.name" class="w-full" />
+                </div>
+                
+                <div>
+                    <label for="description" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Description</label>
+                    <textarea pInputTextarea id="description" [(ngModel)]="currentProject.description" [rows]="4" class="w-full"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-12 gap-4">
+                    <div class="col-span-6">
+                        <label for="startDate" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Start Date</label>
+                        <p-datepicker id="startDate" [(ngModel)]="startDate" dateFormat="M d, yy" [showIcon]="true" class="w-full" />
+                    </div>
+                    
+                    <div class="col-span-6">
+                        <label for="endDate" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">End Date</label>
+                        <p-datepicker id="endDate" [(ngModel)]="endDate" dateFormat="M d, yy" [showIcon]="true" class="w-full" />
+                    </div>
+                </div>
+                
+                <div *ngIf="dialogMode === 'edit'">
+                    <label for="status" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Status</label>
+                    <p-select id="status" [(ngModel)]="currentProject.status" [options]="statusOptions" placeholder="Select Status" class="w-full" />
+                </div>
+                
+                <div *ngIf="dialogMode === 'edit' && currentProject.status === 'in-progress'">
+                    <label for="progress" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Progress (%)</label>
+                    <input pInputText id="progress" [(ngModel)]="currentProject.progress" type="number" min="0" max="100" class="w-full" />
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-2 mt-6">
+                <p-button label="Cancel" severity="secondary" (onClick)="dialogVisible = false" />
+                <p-button [label]="dialogMode === 'add' ? 'Create' : 'Save'" (onClick)="saveProject()" />
+            </div>
+        </p-dialog>
+        
         <div class="card">
             <div class="flex justify-between items-center mb-6">
                 <div class="font-semibold text-xl">Projects Board</div>
-                <p-button label="New Project" icon="pi pi-plus" size="small"></p-button>
+                <p-button label="New Project" icon="pi pi-plus" size="small" (onClick)="openAddDialog()"></p-button>
             </div>
 
             <!-- Kanban-style Board -->
@@ -56,11 +108,12 @@ interface Project {
                             <p-tag [value]="getProjectsByStatus('upcoming').length.toString()" severity="warn"></p-tag>
                         </div>
                         <div class="flex flex-col gap-3 min-h-32">
-                            <div *ngFor="let project of getProjectsByStatus('upcoming')" pDraggable="projects" (onDragStart)="dragStart(project)" (onDragEnd)="dragEnd()" class="bg-surface-0 dark:bg-surface-900 border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow cursor-move" (click)="selectedProject = project">
+                            <div *ngFor="let project of getProjectsByStatus('upcoming')" pDraggable="projects" (onDragStart)="dragStart(project)" (onDragEnd)="dragEnd()" class="bg-surface-0 dark:bg-surface-900 border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer" (click)="selectedProject = project">
                                 <div class="flex justify-between items-start mb-3">
                                     <h4 class="text-base font-semibold text-surface-900 dark:text-surface-0 m-0">
                                         {{ project.name }}
                                     </h4>
+                                    <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" severity="secondary" (onClick)="openEditDialog(project); $event.stopPropagation()" />
                                 </div>
 
                                 <p class="text-surface-700 dark:text-surface-300 text-sm mb-3 line-clamp-2">
@@ -105,11 +158,12 @@ interface Project {
                             <p-tag [value]="getProjectsByStatus('in-progress').length.toString()" severity="info"></p-tag>
                         </div>
                         <div class="flex flex-col gap-3 min-h-32">
-                            <div *ngFor="let project of getProjectsByStatus('in-progress')" pDraggable="projects" (onDragStart)="dragStart(project)" (onDragEnd)="dragEnd()" class="bg-surface-0 dark:bg-surface-900 border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow cursor-move" (click)="selectedProject = project">
+                            <div *ngFor="let project of getProjectsByStatus('in-progress')" pDraggable="projects" (onDragStart)="dragStart(project)" (onDragEnd)="dragEnd()" class="bg-surface-0 dark:bg-surface-900 border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer" (click)="selectedProject = project">
                                 <div class="flex justify-between items-start mb-3">
                                     <h4 class="text-base font-semibold text-surface-900 dark:text-surface-0 m-0">
                                         {{ project.name }}
                                     </h4>
+                                    <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" severity="secondary" (onClick)="openEditDialog(project); $event.stopPropagation()" />
                                 </div>
 
                                 <p class="text-surface-700 dark:text-surface-300 text-sm mb-3 line-clamp-2">
@@ -157,12 +211,15 @@ interface Project {
                             <p-tag [value]="getProjectsByStatus('completed').length.toString()" severity="success"></p-tag>
                         </div>
                         <div class="flex flex-col gap-3 min-h-32">
-                            <div *ngFor="let project of getProjectsByStatus('completed')" pDraggable="projects" (onDragStart)="dragStart(project)" (onDragEnd)="dragEnd()" class="bg-surface-0 dark:bg-surface-900 border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow cursor-move" (click)="selectedProject = project">
+                            <div *ngFor="let project of getProjectsByStatus('completed')" pDraggable="projects" (onDragStart)="dragStart(project)" (onDragEnd)="dragEnd()" class="bg-surface-0 dark:bg-surface-900 border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer" (click)="selectedProject = project">
                                 <div class="flex justify-between items-start mb-3">
-                                    <h4 class="text-base font-semibold text-surface-900 dark:text-surface-0 m-0">
-                                        {{ project.name }}
-                                    </h4>
-                                    <i class="pi pi-check-circle text-green-500 text-xl"></i>
+                                    <div class="flex items-center gap-2 flex-1">
+                                        <h4 class="text-base font-semibold text-surface-900 dark:text-surface-0 m-0">
+                                            {{ project.name }}
+                                        </h4>
+                                        <i class="pi pi-check-circle text-green-500 text-xl"></i>
+                                    </div>
+                                    <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" severity="secondary" (onClick)="openEditDialog(project); $event.stopPropagation()" />
                                 </div>
 
                                 <p class="text-surface-700 dark:text-surface-300 text-sm mb-3 line-clamp-2">
@@ -204,7 +261,11 @@ interface Project {
             <div *ngIf="selectedProject" class="mt-8 border-t border-surface pt-8">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold text-surface-900 dark:text-surface-0 m-0">{{ selectedProject.name }}</h2>
-                    <p-button icon="pi pi-times" [text]="true" [rounded]="true" (onClick)="selectedProject = null"></p-button>
+                    <div class="flex gap-2">
+                        <p-button label="Edit" icon="pi pi-pencil" severity="secondary" [outlined]="true" (onClick)="openEditDialog(selectedProject)" />
+                        <p-button label="Delete" icon="pi pi-trash" severity="danger" [outlined]="true" (onClick)="confirmDelete(selectedProject)" />
+                        <p-button icon="pi pi-times" [text]="true" [rounded]="true" (onClick)="selectedProject = null"></p-button>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-12 gap-6">
@@ -264,8 +325,21 @@ interface Project {
     `
 })
 export class Projects {
+    constructor(private confirmationService: ConfirmationService) {}
+    
     selectedProject: Project | null = null;
     draggedProject: Project | null = null;
+    dialogVisible = false;
+    dialogMode: 'add' | 'edit' = 'add';
+    currentProject: Project = this.getEmptyProject();
+    startDate: Date | null = null;
+    endDate: Date | null = null;
+    
+    statusOptions = [
+        { label: 'Upcoming', value: 'upcoming' },
+        { label: 'In Progress', value: 'in-progress' },
+        { label: 'Completed', value: 'completed' }
+    ];
 
     projects: Project[] = [
         {
@@ -459,6 +533,98 @@ export class Projects {
                 // For 'in-progress', keep the current progress
             }
             this.draggedProject = null;
+        }
+    }
+    
+    getEmptyProject(): Project {
+        return {
+            id: 0,
+            name: '',
+            description: '',
+            status: 'upcoming',
+            startDate: '',
+            endDate: '',
+            progress: 0,
+            participants: [],
+            objectives: []
+        };
+    }
+    
+    formatDate(date: Date): string {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+    }
+    
+    openAddDialog() {
+        this.dialogMode = 'add';
+        this.currentProject = this.getEmptyProject();
+        this.startDate = null;
+        this.endDate = null;
+        this.dialogVisible = true;
+    }
+    
+    openEditDialog(project: Project) {
+        this.dialogMode = 'edit';
+        this.currentProject = { ...project, participants: [...project.participants], objectives: [...project.objectives] };
+        // Parse dates if they exist
+        this.startDate = project.startDate ? new Date(project.startDate) : null;
+        this.endDate = project.endDate ? new Date(project.endDate) : null;
+        this.dialogVisible = true;
+    }
+    
+    saveProject() {
+        // Format dates
+        if (this.startDate) {
+            this.currentProject.startDate = this.formatDate(this.startDate);
+        }
+        if (this.endDate) {
+            this.currentProject.endDate = this.formatDate(this.endDate);
+        }
+        
+        if (this.dialogMode === 'add') {
+            // Generate new ID
+            const maxId = this.projects.length > 0 
+                ? Math.max(...this.projects.map(p => p.id)) 
+                : 0;
+            this.currentProject.id = maxId + 1;
+            this.currentProject.status = 'upcoming';
+            this.currentProject.progress = 0;
+            this.currentProject.participants = [];
+            this.currentProject.objectives = [];
+            this.projects.push(this.currentProject);
+        } else {
+            // Update existing project
+            const index = this.projects.findIndex(p => p.id === this.currentProject.id);
+            if (index !== -1) {
+                // Update progress based on status if status changed
+                if (this.currentProject.status === 'upcoming') {
+                    this.currentProject.progress = 0;
+                } else if (this.currentProject.status === 'completed') {
+                    this.currentProject.progress = 100;
+                }
+                this.projects[index] = this.currentProject;
+            }
+        }
+        this.dialogVisible = false;
+    }
+    
+    confirmDelete(project: Project) {
+        this.confirmationService.confirm({
+            message: `Are you sure you want to delete "${project.name}"? This action cannot be undone.`,
+            header: 'Delete Confirmation',
+            icon: 'pi pi-exclamation-triangle',
+            acceptButtonStyleClass: 'p-button-danger',
+            accept: () => {
+                this.deleteProject(project);
+            }
+        });
+    }
+    
+    deleteProject(project: Project) {
+        this.projects = this.projects.filter(p => p.id !== project.id);
+        // Close details if the deleted project was selected
+        if (this.selectedProject?.id === project.id) {
+            this.selectedProject = null;
         }
     }
 }

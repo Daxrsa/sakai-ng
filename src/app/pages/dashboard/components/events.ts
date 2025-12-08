@@ -5,9 +5,9 @@ import { Component } from '@angular/core';
     imports: [],
     template: `
         <div class="card">
-           <a href="https://js.devexpress.com/Angular/Demos/WidgetsGallery/Demo/Scheduler/GoogleCalendarIntegration/FluentBlueLight/">Google Calendar Integration</a>
-           <a href="https://fullcalendar.io/docs/angular">FullCalendar.io</a>
+            <iframe src="https://calendar.google.com/calendar/embed?src=daorsahyseni%40gmail.com&ctz=Europe%2FAmsterdam" style="border-radius: 5px" width="800" height="600" frameborder="0" scrolling="no"></iframe>        
         </div>
     `
 })
-export class Events { }
+export class Events {
+}
