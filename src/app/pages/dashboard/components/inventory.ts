@@ -14,6 +14,7 @@ import { ToastModule } from 'primeng/toast';
 import { ToolbarModule } from 'primeng/toolbar';
 import { FileUploadModule } from 'primeng/fileupload';
 import { RatingModule } from 'primeng/rating';
+import { GalleriaModule } from 'primeng/galleria';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { InputIcon } from "primeng/inputicon";
 import { IconField } from "primeng/iconfield";
@@ -27,6 +28,7 @@ interface InventoryItem {
     price: number;
     status: 'in-stock' | 'low-stock' | 'out-of-stock';
     image?: string;
+    images?: string[];
     rating?: number;
     location: string;
     lastUpdated: string;
@@ -50,6 +52,7 @@ interface InventoryItem {
     ToolbarModule,
     FileUploadModule,
     RatingModule,
+    GalleriaModule,
     InputIcon,
     IconField
 ],
@@ -118,7 +121,15 @@ interface InventoryItem {
                         <td>
                             <div class="flex align-items-center gap-2">
                                 <img 
-                                    *ngIf="item.image" 
+                                    *ngIf="item.images && item.images.length > 0" 
+                                    [src]="item.images[0]" 
+                                    [alt]="item.name" 
+                                    width="50" 
+                                    class="shadow-lg rounded cursor-pointer"
+                                    (click)="showGallery(item)"
+                                />
+                                <img 
+                                    *ngIf="!item.images && item.image" 
                                     [src]="item.image" 
                                     [alt]="item.name" 
                                     width="50" 
@@ -280,6 +291,33 @@ interface InventoryItem {
                 </div>
             </ng-template>
         </p-dialog>
+
+        <!-- Gallery Dialog -->
+        <p-dialog 
+            [(visible)]="galleryVisible" 
+            [header]="galleryItem?.name"
+            [modal]="true" 
+            [style]="{ width: '80vw' }"
+            [contentStyle]="{ 'padding': '0' }"
+        >
+            <p-galleria 
+                *ngIf="galleryItem?.images"
+                [value]="galleryItem!.images" 
+                [numVisible]="5"
+                [responsiveOptions]="responsiveOptions"
+                [circular]="true"
+                [showItemNavigators]="true"
+                [showThumbnails]="true"
+                [containerStyle]="{ 'max-width': '100%' }"
+            >
+                <ng-template #item let-image>
+                    <img [src]="image" style="width: 100%; max-height: 500px; object-fit: contain; display: block;" />
+                </ng-template>
+                <ng-template #thumbnail let-image>
+                    <img [src]="image" style="width: 100%; height: 60px; object-fit: cover; display: block;" />
+                </ng-template>
+            </p-galleria>
+        </p-dialog>
     `
 })
 export class Inventory {
@@ -291,6 +329,23 @@ export class Inventory {
     dialogVisible = false;
     dialogMode: 'add' | 'edit' = 'add';
     currentItem: InventoryItem = this.getEmptyItem();
+    galleryVisible = false;
+    galleryItem: InventoryItem | null = null;
+
+    responsiveOptions = [
+        {
+            breakpoint: '1024px',
+            numVisible: 4
+        },
+        {
+            breakpoint: '768px',
+            numVisible: 3
+        },
+        {
+            breakpoint: '560px',
+            numVisible: 2
+        }
+    ];
 
     categories = [
         { label: 'Electronics', value: 'Electronics' },
@@ -316,7 +371,13 @@ export class Inventory {
             quantity: 45,
             price: 22.99,
             status: 'in-stock',
-            image: 'https://images.unsplash.com/photo-1553406830-ef2513450d76?w=100&h=100&fit=crop',
+            images: [
+                'https://images.unsplash.com/photo-1553406830-ef2513450d76?w=800&h=600&fit=crop',
+                'https://images.unsplash.com/photo-1484788984921-03950022c9ef?w=800&h=600&fit=crop',
+                'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=600&fit=crop',
+                'https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?w=800&h=600&fit=crop',
+                'https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=800&h=600&fit=crop'
+            ],
             rating: 5,
             location: 'Shelf A-12',
             lastUpdated: '2025-12-08'
@@ -411,6 +472,11 @@ export class Inventory {
             lastUpdated: '2025-12-08'
         }
     ];
+
+    showGallery(item: InventoryItem) {
+        this.galleryItem = item;
+        this.galleryVisible = true;
+    }
 
     getEmptyItem(): InventoryItem {
         return {
