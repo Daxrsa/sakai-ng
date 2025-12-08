@@ -129,11 +129,12 @@ interface InventoryItem {
                                     (click)="showGallery(item)"
                                 />
                                 <img 
-                                    *ngIf="!item.images && item.image" 
+                                    *ngIf="(!item.images || item.images.length === 0) && item.image" 
                                     [src]="item.image" 
                                     [alt]="item.name" 
                                     width="50" 
-                                    class="shadow-lg rounded"
+                                    class="shadow-lg rounded cursor-pointer"
+                                    (click)="showGallery(item)"
                                 />
                                 <span class="font-semibold">{{ item.name }}</span>
                             </div>
@@ -262,18 +263,42 @@ interface InventoryItem {
 
                 <div class="flex flex-col gap-2">
                     <label for="rating" class="font-semibold">Rating</label>
-                    <!-- <p-rating [(ngModel)]="currentItem.rating" [cancel]="false" /> -->
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label for="image" class="font-semibold">Image URL</label>
-                    <input 
-                        pInputText 
-                        id="image" 
-                        [(ngModel)]="currentItem.image" 
-                        placeholder="https://example.com/image.jpg"
-                        class="w-full"
+                    <label class="font-semibold">Product Images</label>
+                    <p-fileUpload
+                        mode="basic"
+                        chooseLabel="Upload Images"
+                        accept="image/*"
+                        [maxFileSize]="5000000"
+                        [multiple]="true"
+                        (onSelect)="onImagesSelect($event)"
+                        [auto]="true"
+                        styleClass="w-full mb-2"
                     />
+                    <div class="flex flex-col gap-2">
+                        <div *ngIf="currentItem.images && currentItem.images.length > 0">
+                            <div *ngFor="let img of currentItem.images; let i = index" class="flex gap-2 align-items-center border rounded p-2 mb-2">
+                                <img 
+                                    [src]="img" 
+                                    alt="Image {{i+1}}" 
+                                    class="w-20 h-20 object-cover rounded"
+                                />
+                                <span class="flex-1 text-sm truncate">Image {{i+1}}</span>
+                                <p-button 
+                                    icon="pi pi-times" 
+                                    [rounded]="true" 
+                                    [text]="true" 
+                                    severity="danger"
+                                    (onClick)="removeImage(i)"
+                                />
+                            </div>
+                        </div>
+                        <div *ngIf="!currentItem.images || currentItem.images.length === 0" class="text-muted-color text-sm">
+                            No images uploaded
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -292,17 +317,31 @@ interface InventoryItem {
             </ng-template>
         </p-dialog>
 
+        <!-- Single Image Dialog -->
+        <p-dialog 
+            [(visible)]="singleImageVisible" 
+            [header]="selectedItem?.name"
+            [modal]="true" 
+            [contentStyle]="{ 'padding': '1rem', 'display': 'flex', 'justify-content': 'center' }"
+        >
+            <img 
+                *ngIf="selectedItem?.image || (selectedItem?.images && selectedItem?.images?.length === 1)"
+                [src]="selectedItem!.image || selectedItem!.images![0]" 
+                [alt]="selectedItem?.name"
+                style="max-width: 100%; max-height: 70vh; object-fit: contain;"
+            />
+        </p-dialog>
+
         <!-- Gallery Dialog -->
         <p-dialog 
             [(visible)]="galleryVisible" 
             [header]="galleryItem?.name"
             [modal]="true" 
-            [style]="{ width: '80vw' }"
             [contentStyle]="{ 'padding': '0' }"
         >
             <p-galleria 
                 *ngIf="galleryItem?.images"
-                [value]="galleryItem!.images" 
+                [value]="galleryItem?.images" 
                 [numVisible]="5"
                 [responsiveOptions]="responsiveOptions"
                 [circular]="true"
@@ -331,6 +370,8 @@ export class Inventory {
     currentItem: InventoryItem = this.getEmptyItem();
     galleryVisible = false;
     galleryItem: InventoryItem | null = null;
+    singleImageVisible = false;
+    selectedItem: InventoryItem | null = null;
 
     responsiveOptions = [
         {
@@ -474,8 +515,18 @@ export class Inventory {
     ];
 
     showGallery(item: InventoryItem) {
-        this.galleryItem = item;
-        this.galleryVisible = true;
+        // Check if item has multiple images or single image
+        const imageCount = item.images ? item.images.length : (item.image ? 1 : 0);
+        
+        if (imageCount > 1) {
+            // Show gallery for multiple images
+            this.galleryItem = item;
+            this.galleryVisible = true;
+        } else if (imageCount === 1) {
+            // Show single image dialog
+            this.selectedItem = item;
+            this.singleImageVisible = true;
+        }
     }
 
     getEmptyItem(): InventoryItem {
@@ -502,7 +553,32 @@ export class Inventory {
     openEditDialog(item: InventoryItem) {
         this.dialogMode = 'edit';
         this.currentItem = { ...item };
+        // Initialize images array if it doesn't exist
+        if (!this.currentItem.images) {
+            this.currentItem.images = [];
+        }
         this.dialogVisible = true;
+    }
+
+    onImagesSelect(event: any) {
+        if (!this.currentItem.images) {
+            this.currentItem.images = [];
+        }
+        
+        const files = event.files;
+        for (let file of files) {
+            const reader = new FileReader();
+            reader.onload = (e: any) => {
+                this.currentItem.images!.push(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    removeImage(index: number) {
+        if (this.currentItem.images) {
+            this.currentItem.images.splice(index, 1);
+        }
     }
 
     saveItem() {

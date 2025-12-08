@@ -6,9 +6,7 @@ import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
 import { AvatarModule } from 'primeng/avatar';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
+import { CheckboxModule } from 'primeng/checkbox';
 import { ConfirmationService } from 'primeng/api';
 
 interface User {
@@ -23,39 +21,10 @@ interface User {
 
 @Component({
     selector: 'app-users',
-    imports: [CommonModule, FormsModule, TableModule, TagModule, ButtonModule, AvatarModule, ConfirmDialogModule, DialogModule, InputTextModule, SelectModule],
+    imports: [CommonModule, FormsModule, TableModule, ButtonModule, AvatarModule, ConfirmDialogModule, CheckboxModule],
     providers: [ConfirmationService],
     template: `
     <p-confirmdialog></p-confirmdialog>
-    
-    <p-dialog [(visible)]="editDialogVisible" [header]="'Edit User'" [modal]="true" [style]="{width: '450px'}" [contentStyle]="{'max-height': '70vh', 'overflow': 'visible'}" appendTo="body" [maximizable]="true">
-        <div class="flex flex-col gap-4" *ngIf="selectedUser">
-            <div class="flex flex-col gap-2">
-                <label for="name">Name</label>
-                <input pInputText id="name" [(ngModel)]="selectedUser.name" />
-            </div>
-            <div class="flex flex-col gap-2">
-                <label for="email">Email</label>
-                <input pInputText id="email" type="email" [(ngModel)]="selectedUser.email" />
-            </div>
-            <div class="flex flex-col gap-2">
-                <label for="role">Role</label>
-                <p-select id="role" [(ngModel)]="selectedUser.role" [options]="roleOptions" placeholder="Select a Role" styleClass="w-full"></p-select>
-            </div>
-            <div class="flex flex-col gap-2">
-                <label for="rfid">RFID</label>
-                <p-select id="rfid" [(ngModel)]="selectedUser.rfid" [options]="rfidOptions" placeholder="RFID Status" styleClass="w-full"></p-select>
-            </div>
-            <div class="flex flex-col gap-2">
-                <label for="joinDate">Join Date</label>
-                <input pInputText id="joinDate" type="date" [(ngModel)]="selectedUser.joinDate" />
-            </div>
-        </div>
-        <ng-template #footer>
-            <p-button label="Cancel" severity="secondary" (onClick)="editDialogVisible = false" />
-            <p-button label="Save" (onClick)="saveUser()" />
-        </ng-template>
-    </p-dialog>
     
     <div class="card">
         <div class="font-semibold text-xl mb-4">Users</div>
@@ -69,7 +38,7 @@ interface User {
                     <th>Role</th>
                     <th>RFID</th>
                     <th>Join Date</th>
-                    <th>Actions</th>
+                    <th></th>
                 </tr>
             </ng-template>
             <ng-template #body let-user>
@@ -81,14 +50,31 @@ interface User {
                     <td>{{ user.email }}</td>
                     <td>{{ user.role }}</td>
                     <td>
-                        <p-tag 
-                            [value]="user.rfid" 
-                            [severity]="user.rfid === 'Yes' ? 'success' : 'danger'"
-                        ></p-tag>
+                        <div class="flex align-items-center gap-3">
+                            <div class="flex align-items-center gap-2">
+                                <p-checkbox 
+                                    [(ngModel)]="user.rfid" 
+                                    [binary]="true" 
+                                    inputId="yes-{{user.id}}"
+                                    [trueValue]="'Yes'"
+                                    [falseValue]="'No'"
+                                />
+                                <label [for]="'yes-' + user.id">Yes</label>
+                            </div>
+                            <div class="flex align-items-center gap-2">
+                                <p-checkbox 
+                                    [(ngModel)]="user.rfid" 
+                                    [binary]="true" 
+                                    inputId="no-{{user.id}}"
+                                    [trueValue]="'No'"
+                                    [falseValue]="'Yes'"
+                                />
+                                <label [for]="'no-' + user.id">No</label>
+                            </div>
+                        </div>
                     </td>
                     <td>{{ user.joinDate }}</td>
                     <td>
-                        <p-button icon="pi pi-pencil" [text]="true" severity="warn" styleClass="mr-2" (onClick)="editUser(user)"></p-button>
                         <p-button icon="pi pi-trash" [text]="true" severity="danger" (onClick)="confirmDelete(user)"></p-button>
                     </td>
                 </tr>
@@ -98,36 +84,7 @@ interface User {
     `
 })
 export class Users {
-    editDialogVisible = false;
-    selectedUser: User | null = null;
-    
-    roleOptions = [
-        { label: 'Member', value: 'Member' },
-        { label: 'Board Member', value: 'Board Member' },
-    ];
-    
-    rfidOptions = [
-        { label: 'Yes', value: 'Yes' },
-        { label: 'No', value: 'No' }
-    ];
-
     constructor(private confirmationService: ConfirmationService) {}
-
-    editUser(user: User) {
-        this.selectedUser = { ...user };
-        this.editDialogVisible = true;
-    }
-
-    saveUser() {
-        if (this.selectedUser) {
-            const index = this.users.findIndex(u => u.id === this.selectedUser!.id);
-            if (index !== -1) {
-                this.users[index] = { ...this.selectedUser };
-            }
-            this.editDialogVisible = false;
-            this.selectedUser = null;
-        }
-    }
 
     confirmDelete(user: User) {
         this.confirmationService.confirm({
