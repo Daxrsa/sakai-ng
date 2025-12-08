@@ -157,8 +157,10 @@ interface Project {
                                     <h4 class="text-base font-semibold text-surface-900 dark:text-surface-0 m-0">
                                         {{ project.name }}
                                     </h4>
-                                    <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" severity="secondary" (onClick)="openEditDialog(project); $event.stopPropagation()" />
-                                    <p-button icon="pi pi-trash" [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="confirmDeleteProject(project)" />
+                                    <div class="flex justify-content-center align-content-end">
+                                        <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" severity="secondary" (onClick)="openEditDialog(project); $event.stopPropagation()" />
+                                        <p-button icon="pi pi-trash" [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="confirmDeleteProject(project)" />
+                                    </div>
                                 </div>
 
                                 <p class="text-surface-700 dark:text-surface-300 text-sm mb-3 line-clamp-2">
@@ -168,6 +170,28 @@ interface Project {
                                 <div class="flex items-center gap-2 text-xs text-muted-color mb-3">
                                     <i class="pi pi-calendar"></i>
                                     <span>Starts {{ project.startDate }}</span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <p-button 
+                                        *ngIf="!isUserMember(project)"
+                                        label="Join"
+                                        icon="pi pi-user-plus"
+                                        size="small"
+                                        [outlined]="true"
+                                        (onClick)="joinProject(project, $event)"
+                                        styleClass="w-full"
+                                    />
+                                    <p-button 
+                                        *ngIf="isUserMember(project)"
+                                        label="Leave"
+                                        icon="pi pi-user-minus"
+                                        size="small"
+                                        [outlined]="true"
+                                        severity="danger"
+                                        (onClick)="leaveProject(project, $event)"
+                                        styleClass="w-full"
+                                    />
                                 </div>
 
                                 <p-divider></p-divider>
@@ -208,8 +232,10 @@ interface Project {
                                     <h4 class="text-base font-semibold text-surface-900 dark:text-surface-0 m-0">
                                         {{ project.name }}
                                     </h4>
+                                    <div class="flex justify-content-center align-content-end">
                                     <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" severity="secondary" (onClick)="openEditDialog(project); $event.stopPropagation()" />
                                     <p-button icon="pi pi-trash" [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="confirmDeleteProject(project)" />
+                                    </div>
                                 </div>
 
                                 <p class="text-surface-700 dark:text-surface-300 text-sm mb-3 line-clamp-2">
@@ -222,6 +248,28 @@ interface Project {
                                         <span class="font-semibold">{{ project.progress }}%</span>
                                     </div>
                                     <p-progressbar [value]="project.progress" [showValue]="false"></p-progressbar>
+                                </div>
+
+                                <div class="mb-3">
+                                    <p-button 
+                                        *ngIf="!isUserMember(project)"
+                                        label="Join"
+                                        icon="pi pi-user-plus"
+                                        size="small"
+                                        [outlined]="true"
+                                        (onClick)="joinProject(project, $event)"
+                                        styleClass="w-full"
+                                    />
+                                    <p-button 
+                                        *ngIf="isUserMember(project)"
+                                        label="Leave"
+                                        icon="pi pi-user-minus"
+                                        size="small"
+                                        [outlined]="true"
+                                        severity="danger"
+                                        (onClick)="leaveProject(project, $event)"
+                                        styleClass="w-full"
+                                    />
                                 </div>
 
                                 <p-divider></p-divider>
@@ -265,8 +313,10 @@ interface Project {
                                         </h4>
                                         <i class="pi pi-check-circle text-green-500 text-xl"></i>
                                     </div>
-                                    <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" severity="secondary" (onClick)="openEditDialog(project); $event.stopPropagation()" />
-                                    <p-button icon="pi pi-trash" [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="confirmDeleteProject(project)" />
+                                    <div class="flex justify-content-center align-content-end">
+                                        <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" severity="secondary" (onClick)="openEditDialog(project); $event.stopPropagation()" />
+                                        <p-button icon="pi pi-trash" [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="confirmDeleteProject(project)" />
+                                    </div>
                                 </div>
 
                                 <p class="text-surface-700 dark:text-surface-300 text-sm mb-3 line-clamp-2">
@@ -276,6 +326,28 @@ interface Project {
                                 <div class="flex items-center gap-2 text-xs text-muted-color mb-3">
                                     <i class="pi pi-calendar"></i>
                                     <span>Completed {{ project.endDate }}</span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <p-button 
+                                        *ngIf="!isUserMember(project)"
+                                        label="Join"
+                                        icon="pi pi-user-plus"
+                                        size="small"
+                                        [outlined]="true"
+                                        (onClick)="joinProject(project, $event)"
+                                        styleClass="w-full"
+                                    />
+                                    <p-button 
+                                        *ngIf="isUserMember(project)"
+                                        label="Leave"
+                                        icon="pi pi-user-minus"
+                                        size="small"
+                                        [outlined]="true"
+                                        severity="danger"
+                                        (onClick)="leaveProject(project, $event)"
+                                        styleClass="w-full"
+                                    />
                                 </div>
 
                                 <p-divider></p-divider>
@@ -380,6 +452,13 @@ interface Project {
 })
 export class Projects {
     constructor(private confirmationService: ConfirmationService) {}
+    
+    // Current logged-in user
+    currentUser: Member = {
+        name: 'Ioni Bowcher',
+        avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/ionibowcher.png',
+        role: 'Developer'
+    };
     
     selectedProject: Project | null = null;
     draggedProject: Project | null = null;
@@ -784,5 +863,21 @@ export class Projects {
         if (projectIndex !== -1) {
             this.projects[projectIndex] = this.selectedProject;
         }
+    }
+    
+    isUserMember(project: Project): boolean {
+        return project.participants.some(p => p.name === this.currentUser.name);
+    }
+    
+    joinProject(project: Project, event: Event) {
+        event.stopPropagation();
+        if (!this.isUserMember(project)) {
+            project.participants.push({ ...this.currentUser });
+        }
+    }
+    
+    leaveProject(project: Project, event: Event) {
+        event.stopPropagation();
+        project.participants = project.participants.filter(p => p.name !== this.currentUser.name);
     }
 }
