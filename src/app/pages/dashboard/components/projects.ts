@@ -15,6 +15,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { ConfirmationService } from 'primeng/api';
 
 interface Member {
@@ -46,7 +47,7 @@ interface Project {
 
 @Component({
     selector: 'app-projects',
-    imports: [CommonModule, FormsModule, ButtonModule, TagModule, AvatarModule, AvatarGroupModule, DividerModule, ProgressBarModule, TabsModule, DragDropModule, DialogModule, InputTextModule, TextareaModule, SelectModule, DatePickerModule, ConfirmDialogModule],
+    imports: [CommonModule, FormsModule, ButtonModule, TagModule, AvatarModule, AvatarGroupModule, DividerModule, ProgressBarModule, TabsModule, DragDropModule, DialogModule, InputTextModule, TextareaModule, SelectModule, DatePickerModule, ConfirmDialogModule, MultiSelectModule],
     providers: [ConfirmationService],
     template: `
         <p-confirmdialog></p-confirmdialog>
@@ -75,6 +76,21 @@ interface Project {
                     </div>
                 </div>
                 
+                <div>
+                    <label for="teamMembers" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Team Members</label>
+                    <p-multiselect 
+                        id="teamMembers" 
+                        [(ngModel)]="selectedMemberNames" 
+                        [options]="availableMembers" 
+                        optionLabel="label" 
+                        optionValue="value"
+                        placeholder="Select Team Members" 
+                        class="w-full"
+                        [showClear]="true"
+                        display="chip"
+                    />
+                </div>
+                
                 <div *ngIf="dialogMode === 'edit'">
                     <label for="status" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Status</label>
                     <p-select id="status" [(ngModel)]="currentProject.status" [options]="statusOptions" placeholder="Select Status" class="w-full" />
@@ -92,9 +108,37 @@ interface Project {
             </div>
         </p-dialog>
         
+        <p-dialog [(visible)]="objectiveDialogVisible" [header]="objectiveDialogMode === 'add' ? 'New Objective' : 'Edit Objective'" [modal]="true" [style]="{width: '40rem'}" [contentStyle]="{'max-height': '70vh', 'overflow': 'visible'}" appendTo="body" [maximizable]="true">
+            <div class="flex flex-col gap-4">
+                <div>
+                    <label for="objectiveTitle" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Title</label>
+                    <input pInputText id="objectiveTitle" [(ngModel)]="currentObjective.title" class="w-full" />
+                </div>
+                
+                <div>
+                    <label for="objectiveDescription" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Description</label>
+                    <textarea pInputTextarea id="objectiveDescription" [(ngModel)]="currentObjective.description" [rows]="3" class="w-full"></textarea>
+                </div>
+                
+                <div>
+                    <label for="objectiveStatus" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Status</label>
+                    <p-select id="objectiveStatus" [(ngModel)]="currentObjective.status" [options]="objectiveStatusOptions" placeholder="Select Status" class="w-full" />
+                </div>
+                
+                <div>
+                    <label for="objectiveProgress" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Progress (%)</label>
+                    <input pInputText id="objectiveProgress" [(ngModel)]="currentObjective.progress" type="number" min="0" max="100" class="w-full" />
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-2 mt-6">
+                <p-button label="Cancel" severity="secondary" (onClick)="objectiveDialogVisible = false" />
+                <p-button [label]="objectiveDialogMode === 'add' ? 'Create' : 'Save'" (onClick)="saveObjective()" />
+            </div>
+        </p-dialog>
+        
         <div class="card">
-            <div class="flex justify-between items-center mb-6">
-                <div class="font-semibold text-xl">Projects Board</div>
+            <div class="flex justify-end items-center mb-6">
                 <p-button label="New Project" icon="pi pi-plus" size="small" (onClick)="openAddDialog()"></p-button>
             </div>
 
@@ -114,6 +158,7 @@ interface Project {
                                         {{ project.name }}
                                     </h4>
                                     <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" severity="secondary" (onClick)="openEditDialog(project); $event.stopPropagation()" />
+                                    <p-button icon="pi pi-trash" [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="confirmDeleteProject(project)" />
                                 </div>
 
                                 <p class="text-surface-700 dark:text-surface-300 text-sm mb-3 line-clamp-2">
@@ -164,6 +209,7 @@ interface Project {
                                         {{ project.name }}
                                     </h4>
                                     <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" severity="secondary" (onClick)="openEditDialog(project); $event.stopPropagation()" />
+                                    <p-button icon="pi pi-trash" [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="confirmDeleteProject(project)" />
                                 </div>
 
                                 <p class="text-surface-700 dark:text-surface-300 text-sm mb-3 line-clamp-2">
@@ -220,6 +266,7 @@ interface Project {
                                         <i class="pi pi-check-circle text-green-500 text-xl"></i>
                                     </div>
                                     <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" severity="secondary" (onClick)="openEditDialog(project); $event.stopPropagation()" />
+                                    <p-button icon="pi pi-trash" [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="confirmDeleteProject(project)" />
                                 </div>
 
                                 <p class="text-surface-700 dark:text-surface-300 text-sm mb-3 line-clamp-2">
@@ -263,7 +310,7 @@ interface Project {
                     <h2 class="text-2xl font-bold text-surface-900 dark:text-surface-0 m-0">{{ selectedProject.name }}</h2>
                     <div class="flex gap-2">
                         <p-button label="Edit" icon="pi pi-pencil" severity="secondary" [outlined]="true" (onClick)="openEditDialog(selectedProject)" />
-                        <p-button label="Delete" icon="pi pi-trash" severity="danger" [outlined]="true" (onClick)="confirmDelete(selectedProject)" />
+                        <p-button label="Delete" icon="pi pi-trash" severity="danger" [outlined]="true" (onClick)="confirmDeleteProject(selectedProject)" />
                         <p-button icon="pi pi-times" [text]="true" [rounded]="true" (onClick)="selectedProject = null"></p-button>
                     </div>
                 </div>
@@ -271,7 +318,10 @@ interface Project {
                 <div class="grid grid-cols-12 gap-6">
                     <div class="col-span-12 lg:col-span-8">
                         <div class="mb-6">
-                            <h3 class="text-lg font-semibold mb-4">Objectives</h3>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold m-0">Objectives</h3>
+                                <p-button label="Add Objective" icon="pi pi-plus" size="small" (onClick)="openAddObjectiveDialog()" />
+                            </div>
                             <div class="flex flex-col gap-4">
                                 <div *ngFor="let objective of selectedProject.objectives" class="border border-surface rounded-lg p-4">
                                     <div class="flex justify-between items-start mb-3">
@@ -279,10 +329,14 @@ interface Project {
                                             <h4 class="font-semibold text-surface-900 dark:text-surface-0 mb-2">{{ objective.title }}</h4>
                                             <p class="text-sm text-surface-700 dark:text-surface-300 mb-3">{{ objective.description }}</p>
                                         </div>
-                                        <p-tag 
-                                            [value]="objective.status" 
-                                            [severity]="getObjectiveStatusSeverity(objective.status)"
-                                        ></p-tag>
+                                        <div class="flex items-center gap-2">
+                                            <p-tag 
+                                                [value]="objective.status" 
+                                                [severity]="getObjectiveStatusSeverity(objective.status)"
+                                            ></p-tag>
+                                            <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" size="small" severity="secondary" (onClick)="openEditObjectiveDialog(objective)" />
+                                            <p-button icon="pi pi-trash" [text]="true" [rounded]="true" size="small" severity="danger" (onClick)="confirmDeleteObjective(objective)" />
+                                        </div>
                                     </div>
                                     
                                     <div class="flex items-center justify-between">
@@ -335,8 +389,28 @@ export class Projects {
     startDate: Date | null = null;
     endDate: Date | null = null;
     
+    objectiveDialogVisible = false;
+    objectiveDialogMode: 'add' | 'edit' = 'add';
+    currentObjective: Objective = this.getEmptyObjective();
+    selectedMemberNames: string[] = [];
+    
+    availableMembers = [
+        { label: 'Amy Elsner', value: 'Amy Elsner', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png', role: 'Project Lead' },
+        { label: 'Bernardo Dominic', value: 'Bernardo Dominic', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/bernardodominic.png', role: 'Hardware Engineer' },
+        { label: 'Anna Fali', value: 'Anna Fali', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/annafali.png', role: 'Software Developer' },
+        { label: 'Asiya Javayant', value: 'Asiya Javayant', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/asiyajavayant.png', role: 'UI/UX Designer' },
+        { label: 'Elwin Sharvill', value: 'Elwin Sharvill', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/elwinsharvill.png', role: 'Lead Engineer' },
+        { label: 'Ioni Bowcher', value: 'Ioni Bowcher', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/ionibowcher.png', role: 'Technician' }
+    ];
+    
     statusOptions = [
         { label: 'Upcoming', value: 'upcoming' },
+        { label: 'In Progress', value: 'in-progress' },
+        { label: 'Completed', value: 'completed' }
+    ];
+    
+    objectiveStatusOptions = [
+        { label: 'To Do', value: 'todo' },
         { label: 'In Progress', value: 'in-progress' },
         { label: 'Completed', value: 'completed' }
     ];
@@ -560,6 +634,7 @@ export class Projects {
         this.currentProject = this.getEmptyProject();
         this.startDate = null;
         this.endDate = null;
+        this.selectedMemberNames = [];
         this.dialogVisible = true;
     }
     
@@ -569,6 +644,8 @@ export class Projects {
         // Parse dates if they exist
         this.startDate = project.startDate ? new Date(project.startDate) : null;
         this.endDate = project.endDate ? new Date(project.endDate) : null;
+        // Load current team member names
+        this.selectedMemberNames = project.participants.map(p => p.name);
         this.dialogVisible = true;
     }
     
@@ -581,6 +658,16 @@ export class Projects {
             this.currentProject.endDate = this.formatDate(this.endDate);
         }
         
+        // Convert selected member names to participants
+        this.currentProject.participants = this.selectedMemberNames.map(name => {
+            const member = this.availableMembers.find(m => m.value === name);
+            return {
+                name: member!.value,
+                avatar: member!.avatar,
+                role: member!.role
+            };
+        });
+        
         if (this.dialogMode === 'add') {
             // Generate new ID
             const maxId = this.projects.length > 0 
@@ -589,7 +676,6 @@ export class Projects {
             this.currentProject.id = maxId + 1;
             this.currentProject.status = 'upcoming';
             this.currentProject.progress = 0;
-            this.currentProject.participants = [];
             this.currentProject.objectives = [];
             this.projects.push(this.currentProject);
         } else {
@@ -608,7 +694,7 @@ export class Projects {
         this.dialogVisible = false;
     }
     
-    confirmDelete(project: Project) {
+    confirmDeleteProject(project: Project) {
         this.confirmationService.confirm({
             message: `Are you sure you want to delete "${project.name}"? This action cannot be undone.`,
             header: 'Delete Confirmation',
@@ -625,6 +711,78 @@ export class Projects {
         // Close details if the deleted project was selected
         if (this.selectedProject?.id === project.id) {
             this.selectedProject = null;
+        }
+    }
+    
+    getEmptyObjective(): Objective {
+        return {
+            id: 0,
+            title: '',
+            description: '',
+            status: 'todo',
+            assignedTo: { name: 'Unassigned', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png', role: 'Member' },
+            progress: 0
+        };
+    }
+    
+    openAddObjectiveDialog() {
+        if (!this.selectedProject) return;
+        this.objectiveDialogMode = 'add';
+        this.currentObjective = this.getEmptyObjective();
+        this.objectiveDialogVisible = true;
+    }
+    
+    openEditObjectiveDialog(objective: Objective) {
+        this.objectiveDialogMode = 'edit';
+        this.currentObjective = { ...objective, assignedTo: { ...objective.assignedTo } };
+        this.objectiveDialogVisible = true;
+    }
+    
+    saveObjective() {
+        if (!this.selectedProject) return;
+        
+        if (this.objectiveDialogMode === 'add') {
+            const maxId = this.selectedProject.objectives.length > 0
+                ? Math.max(...this.selectedProject.objectives.map(o => o.id))
+                : 0;
+            this.currentObjective.id = maxId + 1;
+            this.selectedProject.objectives.push(this.currentObjective);
+        } else {
+            const index = this.selectedProject.objectives.findIndex(o => o.id === this.currentObjective.id);
+            if (index !== -1) {
+                this.selectedProject.objectives[index] = this.currentObjective;
+            }
+        }
+        
+        // Update the project in the main projects array
+        const projectIndex = this.projects.findIndex(p => p.id === this.selectedProject!.id);
+        if (projectIndex !== -1) {
+            this.projects[projectIndex] = this.selectedProject;
+        }
+        
+        this.objectiveDialogVisible = false;
+    }
+    
+    confirmDeleteObjective(objective: Objective) {
+        this.confirmationService.confirm({
+            message: `Are you sure you want to delete "${objective.title}"?`,
+            header: 'Delete Confirmation',
+            icon: 'pi pi-exclamation-triangle',
+            acceptButtonStyleClass: 'p-button-danger',
+            accept: () => {
+                this.deleteObjective(objective);
+            }
+        });
+    }
+    
+    deleteObjective(objective: Objective) {
+        if (!this.selectedProject) return;
+        this.selectedProject.objectives = this.selectedProject.objectives.filter(o => o.id !== objective.id);
+        
+        // Update the project in the main projects array
+        const projectIndex = this.projects.findIndex(p => p.id === this.selectedProject!.id);
+        if (projectIndex !== -1) {
+            this.projects[projectIndex] = this.selectedProject;
         }
     }
 }

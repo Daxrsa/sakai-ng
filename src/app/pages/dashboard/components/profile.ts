@@ -20,7 +20,7 @@ import { SelectModule } from 'primeng/select';
     selector: 'app-profile',
     imports: [CommonModule, FormsModule, AvatarModule, ButtonModule, TagModule, ChipModule, BadgeModule, DividerModule, PanelModule, ProgressBarModule, AvatarGroupModule, DialogModule, InputTextModule, TextareaModule, FileUploadModule, SelectModule],
     template: `
-        <p-dialog [(visible)]="editDialogVisible" header="Edit Profile" [modal]="true" [style]="{width: '50rem'}" [contentStyle]="{'max-height': '70vh', 'overflow-y': 'auto'}" appendTo="body" [maximizable]="true">
+        <p-dialog [(visible)]="editDialogVisible" header="Edit Profile" [modal]="true" [style]="{width: '50rem'}" [contentStyle]="{'overflow-y': 'auto'}" appendTo="body" [maximizable]="true">
             <div class="flex flex-col gap-4">
                 <!-- Profile Picture Upload -->
                 <div class="flex flex-col items-center gap-4 mb-4">
