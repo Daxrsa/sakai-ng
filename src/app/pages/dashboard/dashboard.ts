@@ -6,6 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { DialogModule } from 'primeng/dialog';
 import { DividerModule } from 'primeng/divider';
+import { ChartDemo } from "../uikit/chartdemo";
 
 interface JoinRequest {
     id: number;
@@ -21,10 +22,10 @@ interface JoinRequest {
 
 @Component({
     selector: 'app-dashboard',
-    imports: [CommonModule, StatsWidget, TableModule, ButtonModule, TagModule, DialogModule, DividerModule],
-    template: `
-        <div class="grid grid-cols-12 gap-8">
-            <!-- <app-stats-widget class="contents" /> -->            
+    imports: [CommonModule, StatsWidget, TableModule, ButtonModule, TagModule, DialogModule, DividerModule, ChartDemo],
+    template: `   
+        <div class="grid grid-cols-12 gap-8">   
+            <app-stats-widget class="contents" />      
             <!-- Join Requests Section -->
             <div class="col-span-12">
                 <div class="card">
@@ -170,6 +171,9 @@ interface JoinRequest {
                 />
             </div>
         </p-dialog>
+        <div class="card">
+            <app-chart-demo />
+        </div>
     `
 })
 export class Dashboard {
