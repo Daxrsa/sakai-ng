@@ -96,8 +96,16 @@ interface JoinRequest {
                     </p-table>
                 </div>
             </div>
+
         </div>
-        
+        <div class="col-span-12">  
+<iframe 
+  src="https://etherpad.wikimedia.org/p/FLOSSK12NOV2025"
+  width="100%" 
+  height="600px" 
+  frameborder="0">
+</iframe>
+</div>
         <!-- View Request Dialog -->
         <p-dialog [(visible)]="viewDialogVisible" [header]="selectedRequest ? selectedRequest.firstName + ' ' + selectedRequest.lastName : 'Request Details'" [modal]="true" [style]="{width: '50rem'}" appendTo="body">
             <div *ngIf="selectedRequest" class="flex flex-col gap-4">
@@ -176,7 +184,7 @@ interface JoinRequest {
 export class Dashboard {
     viewDialogVisible = false;
     selectedRequest: JoinRequest | null = null;
-    
+
     joinRequests: JoinRequest[] = [
         {
             id: 1,
@@ -234,29 +242,29 @@ export class Dashboard {
             status: 'pending'
         }
     ];
-    
+
     getPendingCount(): number {
         return this.joinRequests.filter(r => r.status === 'pending').length;
     }
-    
+
     getStatusSeverity(status: string): 'success' | 'warn' | 'danger' {
-        switch(status) {
+        switch (status) {
             case 'approved': return 'success';
             case 'pending': return 'warn';
             case 'rejected': return 'danger';
             default: return 'warn';
         }
     }
-    
+
     viewRequest(request: JoinRequest) {
         this.selectedRequest = request;
         this.viewDialogVisible = true;
     }
-    
+
     approveRequest(request: JoinRequest) {
         request.status = 'approved';
     }
-    
+
     rejectRequest(request: JoinRequest) {
         request.status = 'rejected';
     }

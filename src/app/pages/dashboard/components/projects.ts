@@ -25,6 +25,14 @@ interface Member {
     role: string;
 }
 
+interface Resource {
+    id: number;
+    title: string;
+    url: string;
+    description: string;
+    type: 'documentation' | 'tutorial' | 'tool' | 'reference' | 'other';
+}
+
 interface Objective {
     id: number;
     title: string;
@@ -45,6 +53,7 @@ interface Project {
     progress: number;
     participants: Member[];
     objectives: Objective[];
+    resources?: Resource[];
 }
 
 @Component({
@@ -53,20 +62,6 @@ interface Project {
     providers: [ConfirmationService],
     template: `
         <p-confirmdialog></p-confirmdialog>
-
-<!-- <iframe 
-  src="https://docs.google.com/document/d/1TQnmEBGvfp3RGmQpFvrh2fJIs3a49xb18ECVs_x0XXY/edit?tab=t.0"
-  width="100%" 
-  height="600px" 
-  frameborder="0">
-</iframe>
-
-<iframe 
-  src="https://etherpad.wikimedia.org/p/FLOSSK12NOV2025"
-  width="100%" 
-  height="600px" 
-  frameborder="0">
-</iframe> -->
         
         <p-dialog [(visible)]="dialogVisible" [header]="dialogMode === 'add' ? 'New Project' : 'Edit Project'" [modal]="true" [style]="{width: '50rem'}" [contentStyle]="{'max-height': '70vh', 'overflow': 'visible'}" appendTo="body" [maximizable]="true">
             <div class="flex flex-col gap-4">
@@ -155,6 +150,36 @@ interface Project {
             <div class="flex justify-end gap-2 mt-6">
                 <p-button label="Cancel" severity="secondary" (onClick)="objectiveDialogVisible = false" />
                 <p-button [label]="objectiveDialogMode === 'add' ? 'Create' : 'Save'" (onClick)="saveObjective()" />
+            </div>
+        </p-dialog>
+        
+        <!-- Resource Dialog -->
+        <p-dialog [(visible)]="resourceDialogVisible" [header]="resourceDialogMode === 'add' ? 'Add Resource' : 'Edit Resource'" [modal]="true" [style]="{width: '40rem'}" [contentStyle]="{'max-height': '70vh', 'overflow': 'visible'}" appendTo="body">
+            <div class="flex flex-col gap-4">
+                <div>
+                    <label for="resourceTitle" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Title</label>
+                    <input pInputText id="resourceTitle" [(ngModel)]="currentResource.title" class="w-full" />
+                </div>
+                
+                <div>
+                    <label for="resourceUrl" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">URL</label>
+                    <input pInputText id="resourceUrl" [(ngModel)]="currentResource.url" placeholder="https://example.com" class="w-full" />
+                </div>
+                
+                <div>
+                    <label for="resourceDescription" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Description</label>
+                    <textarea pInputTextarea id="resourceDescription" [(ngModel)]="currentResource.description" [rows]="2" class="w-full"></textarea>
+                </div>
+                
+                <div>
+                    <label for="resourceType" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Type</label>
+                    <p-select id="resourceType" [(ngModel)]="currentResource.type" [options]="resourceTypeOptions" placeholder="Select Type" class="w-full" />
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-2 mt-6">
+                <p-button label="Cancel" severity="secondary" (onClick)="resourceDialogVisible = false" />
+                <p-button [label]="resourceDialogMode === 'add' ? 'Add' : 'Save'" (onClick)="saveResource()" />
             </div>
         </p-dialog>
         
@@ -465,7 +490,7 @@ interface Project {
                     </div>
 
                     <div class="col-span-12 lg:col-span-4">
-                       
+                        <div class="mb-6">
                             <h3 class="text-lg font-semibold mb-4">Team Members</h3>
                             <div class="flex flex-col gap-3">
                                 <div *ngFor="let member of selectedProject.participants" class="flex items-center gap-3">
@@ -475,7 +500,35 @@ interface Project {
                                         <p class="text-sm text-muted-color m-0">{{ member.role }}</p>
                                     </div>
                                 </div>
-                           
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold m-0">Resources</h3>
+                                <p-button icon="pi pi-plus" size="small" [text]="true" [rounded]="true" (onClick)="openAddResourceDialog()" />
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <div *ngFor="let resource of selectedProject.resources" class="p-3 bg-surface-50 dark:bg-surface-800 rounded-lg">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div class="flex-1">
+                                            <a [href]="resource.url" target="_blank" class="font-semibold text-primary hover:underline flex items-center gap-2">
+                                                {{ resource.title }}
+                                                <i class="pi pi-external-link text-xs"></i>
+                                            </a>
+                                            <p class="text-xs text-muted-color m-0 mt-1">{{ resource.description }}</p>
+                                        </div>
+                                        <div class="flex gap-1">
+                                            <p-button icon="pi pi-pencil" size="small" [text]="true" severity="secondary" (onClick)="openEditResourceDialog(resource)" />
+                                            <p-button icon="pi pi-trash" size="small" [text]="true" severity="danger" (onClick)="confirmDeleteResource(resource)" />
+                                        </div>
+                                    </div>
+                                    <p-tag [value]="resource.type" severity="secondary" styleClass="text-xs"></p-tag>
+                                </div>
+                                <div *ngIf="!selectedProject.resources || selectedProject.resources.length === 0" class="text-center text-muted-color text-sm py-4">
+                                    No resources added yet
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -507,6 +560,10 @@ export class Projects {
     selectedMemberNames: string[] = [];
     selectedObjectiveMemberNames: string[] = [];
     
+    resourceDialogVisible = false;
+    resourceDialogMode: 'add' | 'edit' = 'add';
+    currentResource: Resource = this.getEmptyResource();
+    
     availableMembers: Member[] = [
         { name: 'Amy Elsner', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png', role: 'Project Lead' },
         { name: 'Bernardo Dominic', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/bernardodominic.png', role: 'Hardware Engineer' },
@@ -526,6 +583,14 @@ export class Projects {
         { label: 'To Do', value: 'todo' },
         { label: 'In Progress', value: 'in-progress' },
         { label: 'Completed', value: 'completed' }
+    ];
+    
+    resourceTypeOptions = [
+        { label: 'Documentation', value: 'documentation' },
+        { label: 'Tutorial', value: 'tutorial' },
+        { label: 'Tool', value: 'tool' },
+        { label: 'Reference', value: 'reference' },
+        { label: 'Other', value: 'other' }
     ];
 
     projects: Project[] = [
@@ -575,6 +640,29 @@ export class Projects {
                     status: 'todo',
                     assignedTo: { name: 'Amy Elsner', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png', role: 'Project Lead' },
                     progress: 0
+                }
+            ],
+            resources: [
+                {
+                    id: 1,
+                    title: 'Arduino Home Automation Guide',
+                    url: 'https://www.arduino.cc/en/Tutorial/HomePage',
+                    description: 'Official Arduino tutorials for IoT projects',
+                    type: 'tutorial'
+                },
+                {
+                    id: 2,
+                    title: 'MQTT Protocol Documentation',
+                    url: 'https://mqtt.org/documentation',
+                    description: 'Communication protocol for IoT devices',
+                    type: 'documentation'
+                },
+                {
+                    id: 3,
+                    title: 'Home Assistant Integration',
+                    url: 'https://www.home-assistant.io/',
+                    description: 'Open source home automation platform',
+                    type: 'tool'
                 }
             ]
         },
@@ -948,6 +1036,81 @@ export class Projects {
     leaveProject(project: Project, event: Event) {
         event.stopPropagation();
         project.participants = project.participants.filter(p => p.name !== this.currentUser.name);
+    }
+    
+    getEmptyResource(): Resource {
+        return {
+            id: 0,
+            title: '',
+            url: '',
+            description: '',
+            type: 'documentation'
+        };
+    }
+    
+    openAddResourceDialog() {
+        if (!this.selectedProject) return;
+        this.resourceDialogMode = 'add';
+        this.currentResource = this.getEmptyResource();
+        this.resourceDialogVisible = true;
+    }
+    
+    openEditResourceDialog(resource: Resource) {
+        this.resourceDialogMode = 'edit';
+        this.currentResource = { ...resource };
+        this.resourceDialogVisible = true;
+    }
+    
+    saveResource() {
+        if (!this.selectedProject) return;
+        
+        if (!this.selectedProject.resources) {
+            this.selectedProject.resources = [];
+        }
+        
+        if (this.resourceDialogMode === 'add') {
+            const maxId = this.selectedProject.resources.length > 0
+                ? Math.max(...this.selectedProject.resources.map(r => r.id))
+                : 0;
+            this.currentResource.id = maxId + 1;
+            this.selectedProject.resources.push(this.currentResource);
+        } else {
+            const index = this.selectedProject.resources.findIndex(r => r.id === this.currentResource.id);
+            if (index !== -1) {
+                this.selectedProject.resources[index] = this.currentResource;
+            }
+        }
+        
+        // Update the project in the main projects array
+        const projectIndex = this.projects.findIndex(p => p.id === this.selectedProject!.id);
+        if (projectIndex !== -1) {
+            this.projects[projectIndex] = this.selectedProject;
+        }
+        
+        this.resourceDialogVisible = false;
+    }
+    
+    confirmDeleteResource(resource: Resource) {
+        this.confirmationService.confirm({
+            message: `Are you sure you want to delete "${resource.title}"?`,
+            header: 'Delete Confirmation',
+            icon: 'pi pi-exclamation-triangle',
+            acceptButtonStyleClass: 'p-button-danger',
+            accept: () => {
+                this.deleteResource(resource);
+            }
+        });
+    }
+    
+    deleteResource(resource: Resource) {
+        if (!this.selectedProject || !this.selectedProject.resources) return;
+        this.selectedProject.resources = this.selectedProject.resources.filter(r => r.id !== resource.id);
+        
+        // Update the project in the main projects array
+        const projectIndex = this.projects.findIndex(p => p.id === this.selectedProject!.id);
+        if (projectIndex !== -1) {
+            this.projects[projectIndex] = this.selectedProject;
+        }
     }
     
     isUserInObjective(objective: Objective): boolean {
