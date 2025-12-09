@@ -53,6 +53,20 @@ interface Project {
     providers: [ConfirmationService],
     template: `
         <p-confirmdialog></p-confirmdialog>
+
+<!-- <iframe 
+  src="https://docs.google.com/document/d/1TQnmEBGvfp3RGmQpFvrh2fJIs3a49xb18ECVs_x0XXY/edit?tab=t.0"
+  width="100%" 
+  height="600px" 
+  frameborder="0">
+</iframe>
+
+<iframe 
+  src="https://etherpad.wikimedia.org/p/FLOSSK12NOV2025"
+  width="100%" 
+  height="600px" 
+  frameborder="0">
+</iframe> -->
         
         <p-dialog [(visible)]="dialogVisible" [header]="dialogMode === 'add' ? 'New Project' : 'Edit Project'" [modal]="true" [style]="{width: '50rem'}" [contentStyle]="{'max-height': '70vh', 'overflow': 'visible'}" appendTo="body" [maximizable]="true">
             <div class="flex flex-col gap-4">
@@ -314,7 +328,7 @@ interface Project {
                         <div class="flex flex-col gap-3 min-h-32">
                             <div *ngFor="let project of getProjectsByStatus('completed')" pDraggable="projects" (onDragStart)="dragStart(project)" (onDragEnd)="dragEnd()" class="bg-surface-0 dark:bg-surface-900 border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer" (click)="selectedProject = project">
                                 <div class="flex justify-between items-start mb-3">
-                                    <div class="flex items-center gap-2 flex-1">
+                                    <div class="flex items-baseline gap-2 flex-1">
                                         <h4 class="text-base font-semibold text-surface-900 dark:text-surface-0 m-0">
                                             {{ project.name }}
                                         </h4>
@@ -655,6 +669,38 @@ export class Projects {
                     status: 'completed',
                     assignedTo: { name: 'Amy Elsner', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png', role: 'Programmer' },
                     progress: 100
+                }
+            ]
+        },
+        {
+            id: 4,
+            name: 'Create FLOSSK Management System',
+            description: 'Handles all NGO events including workshops, bootcamps, hackathons, speaking events, and meetups.',
+            status: 'upcoming',
+            startDate: 'Sep 1, 2025',
+            endDate: 'Nov 30, 2025',
+            progress: 100,
+            participants: [
+                { name: 'Bernardo Dominic', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/bernardodominic.png', role: 'Team Captain' },
+                { name: 'Amy Elsner', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png', role: 'Programmer' },
+                { name: 'Elwin Sharvill', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/elwinsharvill.png', role: 'Mechanical Engineer' }
+            ],
+            objectives: [
+                {
+                    id: 1,
+                    title: 'Create Frontend',
+                    description: 'Create a responsive dashboard',
+                    status: 'in-progress',
+                    assignedTo: { name: 'Elwin Sharvill', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/elwinsharvill.png', role: 'Mechanical Engineer' },
+                    progress: 40
+                },
+                {
+                    id: 2,
+                    title: 'Create Backend',
+                    description: 'Create a REST API for handling requests',
+                    status: 'todo',
+                    assignedTo: { name: 'Amy Elsner', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png', role: 'Programmer' },
+                    progress: 0
                 }
             ]
         }
