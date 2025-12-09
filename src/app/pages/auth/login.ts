@@ -20,7 +20,7 @@ import { LayoutService } from '@/layout/service/layout.service';
                 <div style="border-radius: 56px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%)">
                     <div class="w-full bg-surface-0 dark:bg-surface-900 py-20 px-8 sm:px-20" style="border-radius: 53px">
                         <div class="text-center mb-8 flex flex-col items-center">  
-                            <img class="h-45" [src]="layoutService.isDarkTheme() ? 'assets/images/sorra_dark_mode.png' : 'assets/images/sorra.png'" alt="Sorra">
+                            <img class="h-45" [src]="layoutService.isDarkTheme() ? 'assets/images/sorra_logo_dark_mode.png' : 'assets/images/sorra_logo.png'" alt="Sorra">
                             <span class="text-muted-color font-medium">{{ isLoginMode ? 'Log in to continue' : 'Create your account' }}</span>
                         </div>
 
