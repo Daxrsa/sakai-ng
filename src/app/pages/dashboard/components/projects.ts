@@ -16,6 +16,7 @@ import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService } from 'primeng/api';
 
 interface Member {
@@ -31,6 +32,7 @@ interface Objective {
     status: 'todo' | 'in-progress' | 'completed';
     assignedTo: Member;
     progress: number;
+    members?: Member[];
 }
 
 interface Project {
@@ -47,7 +49,7 @@ interface Project {
 
 @Component({
     selector: 'app-projects',
-    imports: [CommonModule, FormsModule, ButtonModule, TagModule, AvatarModule, AvatarGroupModule, DividerModule, ProgressBarModule, TabsModule, DragDropModule, DialogModule, InputTextModule, TextareaModule, SelectModule, DatePickerModule, ConfirmDialogModule, MultiSelectModule],
+    imports: [CommonModule, FormsModule, ButtonModule, TagModule, AvatarModule, AvatarGroupModule, DividerModule, ProgressBarModule, TabsModule, DragDropModule, DialogModule, InputTextModule, TextareaModule, SelectModule, DatePickerModule, ConfirmDialogModule, MultiSelectModule, TooltipModule],
     providers: [ConfirmationService],
     template: `
         <p-confirmdialog></p-confirmdialog>
@@ -82,8 +84,8 @@ interface Project {
                         id="teamMembers" 
                         [(ngModel)]="selectedMemberNames" 
                         [options]="availableMembers" 
-                        optionLabel="label" 
-                        optionValue="value"
+                        optionLabel="name" 
+                        optionValue="name"
                         placeholder="Select Team Members" 
                         class="w-full"
                         [showClear]="true"
@@ -128,6 +130,11 @@ interface Project {
                 <div>
                     <label for="objectiveProgress" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Progress (%)</label>
                     <input pInputText id="objectiveProgress" [(ngModel)]="currentObjective.progress" type="number" min="0" max="100" class="w-full" />
+                </div>
+                
+                <div>
+                    <label for="objectiveMembers" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Team Members</label>
+                    <p-multiSelect id="objectiveMembers" [(ngModel)]="selectedObjectiveMemberNames" [options]="availableMembers" optionLabel="name" optionValue="name" placeholder="Select Team Members" display="chip" class="w-full" />
                 </div>
             </div>
             
@@ -411,13 +418,17 @@ interface Project {
                                         </div>
                                     </div>
                                     
-                                    <div class="flex items-center justify-between">
+                                    <div class="flex items-center justify-between mb-3">
                                         <div class="flex items-center gap-3">
-                                            <p-avatar [image]="objective.assignedTo.avatar" shape="circle" size="normal"></p-avatar>
-                                            <div>
-                                                <p class="text-sm font-semibold m-0">{{ objective.assignedTo.name }}</p>
-                                                <p class="text-xs text-muted-color m-0">{{ objective.assignedTo.role }}</p>
-                                            </div>
+                                            @if (objective.members && objective.members.length > 0) {
+                                                <p-avatarGroup>
+                                                    @for (member of objective.members; track member.name) {
+                                                        <p-avatar [image]="member.avatar" shape="circle" size="normal" [pTooltip]="member.name + ' (' + member.role + ')'"></p-avatar>
+                                                    }
+                                                </p-avatarGroup>
+                                            } @else {
+                                                <span class="text-sm text-surface-600 dark:text-surface-400">No members assigned</span>
+                                            }
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <span class="text-sm font-semibold">{{ objective.progress }}%</span>
@@ -425,6 +436,14 @@ interface Project {
                                                 <p-progressbar [value]="objective.progress" [showValue]="false"></p-progressbar>
                                             </div>
                                         </div>
+                                    </div>
+                                    
+                                    <div class="flex items-center gap-2">
+                                        @if (!isUserInObjective(objective)) {
+                                            <p-button label="Join" icon="pi pi-user-plus" size="small" [outlined]="true" (onClick)="joinObjective(objective, $event)" />
+                                        } @else {
+                                            <p-button label="Leave" icon="pi pi-user-minus" size="small" [outlined]="true" severity="warn" (onClick)="leaveObjective(objective, $event)" />
+                                        }
                                     </div>
                                 </div>
                             </div>
@@ -472,14 +491,15 @@ export class Projects {
     objectiveDialogMode: 'add' | 'edit' = 'add';
     currentObjective: Objective = this.getEmptyObjective();
     selectedMemberNames: string[] = [];
+    selectedObjectiveMemberNames: string[] = [];
     
-    availableMembers = [
-        { label: 'Amy Elsner', value: 'Amy Elsner', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png', role: 'Project Lead' },
-        { label: 'Bernardo Dominic', value: 'Bernardo Dominic', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/bernardodominic.png', role: 'Hardware Engineer' },
-        { label: 'Anna Fali', value: 'Anna Fali', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/annafali.png', role: 'Software Developer' },
-        { label: 'Asiya Javayant', value: 'Asiya Javayant', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/asiyajavayant.png', role: 'UI/UX Designer' },
-        { label: 'Elwin Sharvill', value: 'Elwin Sharvill', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/elwinsharvill.png', role: 'Lead Engineer' },
-        { label: 'Ioni Bowcher', value: 'Ioni Bowcher', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/ionibowcher.png', role: 'Technician' }
+    availableMembers: Member[] = [
+        { name: 'Amy Elsner', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png', role: 'Project Lead' },
+        { name: 'Bernardo Dominic', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/bernardodominic.png', role: 'Hardware Engineer' },
+        { name: 'Anna Fali', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/annafali.png', role: 'Software Developer' },
+        { name: 'Asiya Javayant', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/asiyajavayant.png', role: 'UI/UX Designer' },
+        { name: 'Elwin Sharvill', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/elwinsharvill.png', role: 'Lead Engineer' },
+        { name: 'Ioni Bowcher', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/ionibowcher.png', role: 'Technician' }
     ];
     
     statusOptions = [
@@ -738,14 +758,9 @@ export class Projects {
         }
         
         // Convert selected member names to participants
-        this.currentProject.participants = this.selectedMemberNames.map(name => {
-            const member = this.availableMembers.find(m => m.value === name);
-            return {
-                name: member!.value,
-                avatar: member!.avatar,
-                role: member!.role
-            };
-        });
+        this.currentProject.participants = this.availableMembers.filter(m => 
+            this.selectedMemberNames.includes(m.name)
+        );
         
         if (this.dialogMode === 'add') {
             // Generate new ID
@@ -800,7 +815,8 @@ export class Projects {
             description: '',
             status: 'todo',
             assignedTo: { name: 'Unassigned', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png', role: 'Member' },
-            progress: 0
+            progress: 0,
+            members: []
         };
     }
     
@@ -808,17 +824,24 @@ export class Projects {
         if (!this.selectedProject) return;
         this.objectiveDialogMode = 'add';
         this.currentObjective = this.getEmptyObjective();
+        this.selectedObjectiveMemberNames = [];
         this.objectiveDialogVisible = true;
     }
     
     openEditObjectiveDialog(objective: Objective) {
         this.objectiveDialogMode = 'edit';
-        this.currentObjective = { ...objective, assignedTo: { ...objective.assignedTo } };
+        this.currentObjective = { ...objective, assignedTo: { ...objective.assignedTo }, members: objective.members ? [...objective.members] : [] };
+        this.selectedObjectiveMemberNames = objective.members ? objective.members.map(m => m.name) : [];
         this.objectiveDialogVisible = true;
     }
     
     saveObjective() {
         if (!this.selectedProject) return;
+        
+        // Convert selected member names to Member objects
+        this.currentObjective.members = this.availableMembers.filter(m => 
+            this.selectedObjectiveMemberNames.includes(m.name)
+        );
         
         if (this.objectiveDialogMode === 'add') {
             const maxId = this.selectedProject.objectives.length > 0
@@ -879,5 +902,26 @@ export class Projects {
     leaveProject(project: Project, event: Event) {
         event.stopPropagation();
         project.participants = project.participants.filter(p => p.name !== this.currentUser.name);
+    }
+    
+    isUserInObjective(objective: Objective): boolean {
+        return objective.members ? objective.members.some(m => m.name === this.currentUser.name) : false;
+    }
+    
+    joinObjective(objective: Objective, event: Event) {
+        event.stopPropagation();
+        if (!objective.members) {
+            objective.members = [];
+        }
+        if (!this.isUserInObjective(objective)) {
+            objective.members.push({ ...this.currentUser });
+        }
+    }
+    
+    leaveObjective(objective: Objective, event: Event) {
+        event.stopPropagation();
+        if (objective.members) {
+            objective.members = objective.members.filter(m => m.name !== this.currentUser.name);
+        }
     }
 }

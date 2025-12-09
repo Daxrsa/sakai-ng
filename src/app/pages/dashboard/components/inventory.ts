@@ -111,7 +111,6 @@ interface InventoryItem {
                         <th>Category</th>
                         <th>Quantity</th>
                         <th>Status</th>
-                        <th>Location</th>
                         <th>Actions</th>
                     </tr>
                 </ng-template>
@@ -147,7 +146,6 @@ interface InventoryItem {
                                 [severity]="getStatusSeverity(item.status)"
                             />
                         </td>
-                        <td>{{ item.location }}</td>
                         <td>
                             <div class="flex gap-2">
                                 <p-button 
