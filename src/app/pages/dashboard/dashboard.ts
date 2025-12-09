@@ -170,10 +170,7 @@ interface JoinRequest {
                     (onClick)="selectedRequest && approveRequest(selectedRequest); viewDialogVisible = false" 
                 />
             </div>
-        </p-dialog>
-        <div class="card">
-            <app-chart-demo />
-        </div>
+</p-dialog>
     `
 })
 export class Dashboard {

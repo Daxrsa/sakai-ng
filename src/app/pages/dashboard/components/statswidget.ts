@@ -24,7 +24,7 @@ import { CommonModule } from '@angular/common';
             <div class="card mb-0">
                 <div class="flex justify-between mb-4">
                     <div>
-                        <span class="block text-muted-color font-medium mb-4">Upcoming Projects</span>
+                        <span class="block text-muted-color font-medium mb-4">Completed Projects</span>
                         <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">5</div>
                     </div>
                     <div class="flex items-center justify-center bg-orange-100 dark:bg-orange-400/10 rounded-border" style="width: 2.5rem; height: 2.5rem">
@@ -58,7 +58,7 @@ import { CommonModule } from '@angular/common';
                         <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">10</div>
                     </div>
                     <div class="flex items-center justify-center bg-purple-100 dark:bg-purple-400/10 rounded-border" style="width: 2.5rem; height: 2.5rem">
-                        <i class="pi pi-comment text-purple-500 text-xl!"></i>
+                        <i class="pi pi-clipboard text-purple-500 text-xl!"></i>
                     </div>
                 </div>
                 <span class="text-primary font-medium">5 </span>

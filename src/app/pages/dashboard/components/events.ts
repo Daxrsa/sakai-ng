@@ -5,7 +5,7 @@ import { Component } from '@angular/core';
     imports: [],
     template: `
         <div class="card">
-<iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=Europe%2FAmsterdam&showPrint=0&title=FLOSSK%20Events&src=ZGFvcnNhaHlzZW5pQGdtYWlsLmNvbQ&color=%23039be5" style="border:solid 1px #777" width="800" height="600" frameborder="0" scrolling="no"></iframe>        </div>
+<iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=Europe%2FAmsterdam&showPrint=0&title=FLOSSK%20Events&src=ZGFvcnNhaHlzZW5pQGdtYWlsLmNvbQ&color=%23039be5" width="800" height="600" frameborder="0" scrolling="no"></iframe>        </div>
     `
 })
 export class Events {
