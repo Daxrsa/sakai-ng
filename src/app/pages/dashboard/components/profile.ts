@@ -129,7 +129,21 @@ import { SelectModule } from 'primeng/select';
                                     <h2 class="text-3xl font-bold text-surface-900 dark:text-surface-0">
                                         {{ userProfile.firstName }} {{ userProfile.lastName }}
                                     </h2>
-                                    <p class="text-muted-color">{{ userProfile.email }}</p>
+                                    <p class="text-muted-color mb-2">{{ userProfile.email }}</p>
+                                    <div class="flex gap-3">
+                                        <a href="/" class="text-surface-600 dark:text-surface-400 hover:text-primary transition-colors">
+                                            <i class="pi pi-github" style="font-size: 1.25rem"></i>
+                                        </a>
+                                        <a href="/" class="text-surface-600 dark:text-surface-400 hover:text-primary transition-colors">
+                                            <i class="pi pi-linkedin" style="font-size: 1.25rem"></i>
+                                        </a>
+                                        <a href="/" class="text-surface-600 dark:text-surface-400 hover:text-primary transition-colors">
+                                            <i class="pi pi-twitter" style="font-size: 1.25rem"></i>
+                                        </a>
+                                        <a href="/" class="text-surface-600 dark:text-surface-400 hover:text-primary transition-colors">
+                                            <i class="pi pi-link" style="font-size: 1.25rem"></i>
+                                        </a>
+                                    </div>
                                 </div>
                                 
                                 <div class="flex flex-wrap gap-4">
