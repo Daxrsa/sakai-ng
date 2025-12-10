@@ -790,6 +790,15 @@ export class Projects {
                     assignedTo: { name: 'Amy Elsner', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png', role: 'Programmer' },
                     progress: 0
                 }
+            ],
+            resources: [
+                {
+                    id: 1,
+                    title: 'FLOSSK Management System Requirements',
+                    url: 'https://docs.google.com/document/d/1TQnmEBGvfp3RGmQpFvrh2fJIs3a49xb18ECVs_x0XXY/edit?tab=t.0',
+                    description: 'Project requirements and specifications document',
+                    type: 'documentation'
+                }
             ]
         }
     ];
