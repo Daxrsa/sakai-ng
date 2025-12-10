@@ -81,6 +81,12 @@ interface InventoryItem {
                         (onClick)="openAddDialog()"
                     />
                     <p-button 
+                        label="Import" 
+                        icon="pi pi-download" 
+                        severity="info" 
+                        class="mr-2"
+                    />
+                    <p-button 
                         label="Export" 
                         icon="pi pi-upload" 
                         severity="help" 
@@ -89,6 +95,15 @@ interface InventoryItem {
                 </div>
                
             </p-toolbar>
+
+            <!-- Hidden file input for import -->
+            <input 
+                #importFileInput 
+                type="file" 
+                accept=".json" 
+                style="display: none" 
+               
+            />
 
             <p-table 
                 [value]="inventoryItems" 
