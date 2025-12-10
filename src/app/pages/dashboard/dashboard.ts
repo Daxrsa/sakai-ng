@@ -10,7 +10,7 @@ import { DialogModule } from 'primeng/dialog';
 import { DividerModule } from 'primeng/divider';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
-import { ChartDemo } from "../uikit/chartdemo";
+import { PanelModule } from 'primeng/panel';
 
 interface JoinRequest {
     id: number;
@@ -35,47 +35,67 @@ interface Pad {
 
 @Component({
     selector: 'app-dashboard',
-    imports: [CommonModule, FormsModule, StatsWidget, TableModule, ButtonModule, TagModule, DialogModule, DividerModule, InputTextModule, TextareaModule, ChartDemo],
+    imports: [CommonModule, FormsModule, StatsWidget, TableModule, ButtonModule, TagModule, DialogModule, DividerModule, InputTextModule, TextareaModule, PanelModule],
     template: `   
         <div class="grid grid-cols-12 gap-8">   
             <app-stats-widget class="contents" />      
             
-            <!-- Collaboration Pads Section -->
-            <div class="col-span-12" *ngFor="let pad of pads">
+            <!-- Collaboration Pads Accordion -->
+            <div class="col-span-12" *ngIf="pads.length > 0">
                 <div class="card">
                     <div class="flex justify-between items-center mb-6">
                         <div>
-                            <h2 class="text-2xl font-semibold text-surface-900 dark:text-surface-0 m-0 mb-2">{{ pad.name }}</h2>
-                            <p class="text-muted-color text-sm m-0">{{ pad.description || 'Collaborative workspace' }}</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <p-button 
-                                icon="pi pi-external-link" 
-                                [text]="true" 
-                                [rounded]="true" 
-                                severity="secondary" 
-                                pTooltip="Open in new tab"
-                                (onClick)="openPadInNewTab(pad.url)"
-                            />
-                            <p-button 
-                                icon="pi pi-trash" 
-                                [text]="true" 
-                                [rounded]="true" 
-                                severity="danger" 
-                                pTooltip="Remove pad"
-                                (onClick)="removePad(pad)"
-                            />
+                            <h2 class="text-2xl font-semibold text-surface-900 dark:text-surface-0 m-0 mb-2">Collaboration Pads</h2>
+                            <p class="text-muted-color text-sm m-0">Manage and access your collaborative workspaces</p>
                         </div>
                     </div>
-                    <div class="border-2 border-surface-200 dark:border-surface-700 rounded-lg overflow-hidden shadow-sm">
-                        <iframe 
-                            [src]="pad.safeUrl"
-                            width="100%" 
-                            height="600px" 
-                            frameborder="0"
-                            class="block"
-                            [title]="pad.name">
-                        </iframe>
+                    
+                    <div *ngFor="let pad of pads; let i = index" class="mb-4">
+                        <p-panel [header]="pad.name" [toggleable]="true" [collapsed]="true">
+                            <ng-template #headercontent>
+                                <div class="flex justify-between items-center w-full">
+                                    <span>{{ pad.name }}</span>
+                                    <div class="flex gap-2">
+                                        <p-button 
+                                            icon="pi pi-external-link" 
+                                            [text]="true" 
+                                            [rounded]="true" 
+                                            size="small"
+                                            severity="secondary" 
+                                            pTooltip="Open in new tab"
+                                            (onClick)="openPadInNewTab(pad.url); $event.stopPropagation()"
+                                        />
+                                        <p-button 
+                                            icon="pi pi-trash" 
+                                            [text]="true" 
+                                            [rounded]="true" 
+                                            size="small"
+                                            severity="danger" 
+                                            pTooltip="Remove pad"
+                                            (onClick)="removePad(pad); $event.stopPropagation()"
+                                        />
+                                    </div>
+                                </div>
+                            </ng-template>
+                            
+                            <div class="pt-4">
+                                <div class="flex justify-between items-center mb-4">
+                                    <p class="text-muted-color text-sm m-0 mb-2">{{ pad.description || 'Collaborative workspace' }}</p>
+                                    <small class="text-muted-color">Created: {{ pad.createdDate }}</small>
+                                </div>
+                                
+                                <div class="border-2 border-surface-200 dark:border-surface-700 rounded-lg overflow-hidden shadow-sm">
+                                    <iframe 
+                                        [src]="pad.safeUrl"
+                                        width="100%" 
+                                        height="600px" 
+                                        frameborder="0"
+                                        class="block"
+                                        [title]="pad.name">
+                                    </iframe>
+                                </div>
+                            </div>
+                        </p-panel>
                     </div>
                 </div>
             </div>

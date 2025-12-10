@@ -18,6 +18,14 @@ import { GalleriaModule } from 'primeng/galleria';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { InputIcon } from "primeng/inputicon";
 import { IconField } from "primeng/iconfield";
+import { AvatarModule } from 'primeng/avatar';
+
+interface User {
+    id: number;
+    name: string;
+    avatar: string;
+    email: string;
+}
 
 interface InventoryItem {
     id: number;
@@ -26,12 +34,13 @@ interface InventoryItem {
     category: string;
     quantity: number;
     price: number;
-    status: 'in-stock' | 'low-stock' | 'out-of-stock';
+    status: 'free' | 'in-use';
     image?: string;
     images?: string[];
     rating?: number;
     location: string;
     lastUpdated: string;
+    inUseBy?: User;
 }
 
 @Component({
@@ -54,7 +63,8 @@ interface InventoryItem {
     RatingModule,
     GalleriaModule,
     InputIcon,
-    IconField
+    IconField,
+    AvatarModule
 ],
     providers: [ConfirmationService, MessageService],
     template: `
@@ -156,18 +166,63 @@ interface InventoryItem {
                         <td>{{ item.category }}</td>
                         <td>{{ item.quantity }}</td>
                         <td>
-                            <p-tag 
-                                [value]="getStatusLabel(item.status)" 
-                                [severity]="getStatusSeverity(item.status)"
-                            />
+                            <div *ngIf="item.status === 'free'" class="flex items-center">
+                                <p-tag 
+                                    value="Free" 
+                                    severity="success"
+                                />
+                            </div>
+                            <div *ngIf="item.status === 'in-use' && item.inUseBy" class="flex items-center gap-3">
+                                <p-tag 
+                                    value="In Use" 
+                                    severity="warn"
+                                />
+                                <div class="flex items-center gap-2">
+                                    <p-avatar 
+                                        [image]="item.inUseBy.avatar" 
+                                        shape="circle" 
+                                        size="normal"
+                                        [style]="{'width': '2rem', 'height': '2rem'}"
+                                    />
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-semibold">{{ item.inUseBy.name }}</span>
+                                        <span class="text-xs text-muted-color">{{ item.inUseBy.email }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div *ngIf="item.status === 'in-use' && !item.inUseBy">
+                                <p-tag 
+                                    value="In Use" 
+                                    severity="warn"
+                                />
+                            </div>
                         </td>
                         <td>
                             <div class="flex gap-2">
+                                <p-button 
+                                    *ngIf="item.status === 'free'"
+                                    icon="pi pi-sign-in" 
+                                    [rounded]="true" 
+                                    [text]="true" 
+                                    severity="success"
+                                    pTooltip="Check Out"
+                                    (onClick)="checkOutItem(item)"
+                                />
+                                <p-button 
+                                    *ngIf="item.status === 'in-use'"
+                                    icon="pi pi-sign-out" 
+                                    [rounded]="true" 
+                                    [text]="true" 
+                                    severity="warn"
+                                    pTooltip="Check In"
+                                    (onClick)="checkInItem(item)"
+                                />
                                 <p-button 
                                     icon="pi pi-pencil" 
                                     [rounded]="true" 
                                     [text]="true" 
                                     severity="secondary"
+                                    pTooltip="Edit"
                                     (onClick)="openEditDialog(item)"
                                 />
                                 <p-button 
@@ -175,6 +230,7 @@ interface InventoryItem {
                                     [rounded]="true" 
                                     [text]="true" 
                                     severity="danger"
+                                    pTooltip="Delete"
                                     (onClick)="confirmDelete(item)"
                                 />
                             </div>
@@ -411,9 +467,35 @@ export class Inventory {
     ];
 
     statusOptions = [
-        { label: 'In Stock', value: 'in-stock' },
-        { label: 'Low Stock', value: 'low-stock' },
-        { label: 'Out of Stock', value: 'out-of-stock' }
+        { label: 'Free', value: 'free' },
+        { label: 'In Use', value: 'in-use' }
+    ];
+
+    users: User[] = [
+        {
+            id: 1,
+            name: 'Amy Elsner',
+            avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png',
+            email: 'amy.elsner@flossk.org'
+        },
+        {
+            id: 2,
+            name: 'Bernardo Dominic',
+            avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/bernardodominic.png',
+            email: 'bernardo.dominic@flossk.org'
+        },
+        {
+            id: 3,
+            name: 'Ioni Bowcher',
+            avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/ionibowcher.png',
+            email: 'ioni.bowcher@flossk.org'
+        },
+        {
+            id: 4,
+            name: 'Asiya Javayant',
+            avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/asiyajavayant.png',
+            email: 'asiya.javayant@flossk.org'
+        }
     ];
 
     inventoryItems: InventoryItem[] = [
@@ -424,7 +506,13 @@ export class Inventory {
             category: 'Electronics',
             quantity: 45,
             price: 22.99,
-            status: 'in-stock',
+            status: 'in-use',
+            inUseBy: {
+                id: 1,
+                name: 'Amy Elsner',
+                avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png',
+                email: 'amy.elsner@flossk.org'
+            },
             images: [
                 'https://images.unsplash.com/photo-1553406830-ef2513450d76?w=800&h=600&fit=crop',
                 'https://images.unsplash.com/photo-1484788984921-03950022c9ef?w=800&h=600&fit=crop',
@@ -443,7 +531,7 @@ export class Inventory {
             category: 'Electronics',
             quantity: 12,
             price: 55.00,
-            status: 'low-stock',
+            status: 'free',
             image: 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=100&h=100&fit=crop',
             rating: 5,
             location: 'Shelf A-13',
@@ -456,7 +544,13 @@ export class Inventory {
             category: 'Tools',
             quantity: 8,
             price: 89.99,
-            status: 'in-stock',
+            status: 'in-use',
+            inUseBy: {
+                id: 2,
+                name: 'Bernardo Dominic',
+                avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/bernardodominic.png',
+                email: 'bernardo.dominic@flossk.org'
+            },
             image: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=100&h=100&fit=crop',
             rating: 4,
             location: 'Workbench 2',
@@ -469,7 +563,7 @@ export class Inventory {
             category: 'Components',
             quantity: 0,
             price: 18.50,
-            status: 'out-of-stock',
+            status: 'free',
             image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=100&h=100&fit=crop',
             rating: 4,
             location: 'Drawer C-5',
@@ -482,7 +576,7 @@ export class Inventory {
             category: 'Tools',
             quantity: 15,
             price: 45.00,
-            status: 'in-stock',
+            status: 'free',
             image: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=100&h=100&fit=crop',
             rating: 5,
             location: 'Tool Cabinet',
@@ -495,7 +589,13 @@ export class Inventory {
             category: 'Components',
             quantity: 32,
             price: 5.99,
-            status: 'in-stock',
+            status: 'in-use',
+            inUseBy: {
+                id: 3,
+                name: 'Ioni Bowcher',
+                avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/ionibowcher.png',
+                email: 'ioni.bowcher@flossk.org'
+            },
             rating: 4,
             location: 'Bin D-8',
             lastUpdated: '2025-12-07'
@@ -507,7 +607,7 @@ export class Inventory {
             category: 'Furniture',
             quantity: 6,
             price: 34.99,
-            status: 'low-stock',
+            status: 'free',
             image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=100&h=100&fit=crop',
             rating: 4,
             location: 'Office Area',
@@ -520,7 +620,13 @@ export class Inventory {
             category: 'Electronics',
             quantity: 28,
             price: 12.99,
-            status: 'in-stock',
+            status: 'in-use',
+            inUseBy: {
+                id: 4,
+                name: 'Asiya Javayant',
+                avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/asiyajavayant.png',
+                email: 'asiya.javayant@flossk.org'
+            },
             rating: 4,
             location: 'Drawer A-3',
             lastUpdated: '2025-12-08'
@@ -550,7 +656,7 @@ export class Inventory {
             category: '',
             quantity: 0,
             price: 0,
-            status: 'in-stock',
+            status: 'free',
             location: '',
             lastUpdated: new Date().toISOString().split('T')[0],
             rating: 0
@@ -652,18 +758,16 @@ export class Inventory {
 
     getStatusLabel(status: string): string {
         const labels: { [key: string]: string } = {
-            'in-stock': 'In Stock',
-            'low-stock': 'Low Stock',
-            'out-of-stock': 'Out of Stock'
+            'free': 'Free',
+            'in-use': 'In Use'
         };
         return labels[status] || status;
     }
 
     getStatusSeverity(status: string): 'success' | 'warn' | 'danger' {
         const severities: { [key: string]: 'success' | 'warn' | 'danger' } = {
-            'in-stock': 'success',
-            'low-stock': 'warn',
-            'out-of-stock': 'danger'
+            'free': 'success',
+            'in-use': 'warn'
         };
         return severities[status] || 'success';
     }
@@ -682,6 +786,35 @@ export class Inventory {
             severity: 'success',
             summary: 'Success',
             detail: 'Inventory exported successfully'
+        });
+    }
+
+    checkOutItem(item: InventoryItem) {
+        // For demo purposes, assign to first user. In real app, this would be current logged-in user
+        const currentUser = this.users[0];
+        
+        item.status = 'in-use';
+        item.inUseBy = currentUser;
+        item.lastUpdated = new Date().toISOString().split('T')[0];
+        
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: `${item.name} checked out to ${currentUser.name}`
+        });
+    }
+
+    checkInItem(item: InventoryItem) {
+        const userName = item.inUseBy?.name || 'Unknown User';
+        
+        item.status = 'free';
+        item.inUseBy = undefined;
+        item.lastUpdated = new Date().toISOString().split('T')[0];
+        
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: `${item.name} checked in from ${userName}`
         });
     }
 }
