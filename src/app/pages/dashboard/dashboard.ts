@@ -1,11 +1,15 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { StatsWidget } from './components/statswidget';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { DialogModule } from 'primeng/dialog';
 import { DividerModule } from 'primeng/divider';
+import { InputTextModule } from 'primeng/inputtext';
+import { TextareaModule } from 'primeng/textarea';
 import { ChartDemo } from "../uikit/chartdemo";
 
 interface JoinRequest {
@@ -20,31 +24,82 @@ interface JoinRequest {
     status: 'pending' | 'approved' | 'rejected';
 }
 
+interface Pad {
+    id: number;
+    name: string;
+    url: string;
+    safeUrl?: SafeResourceUrl;
+    description?: string;
+    createdDate: string;
+}
+
 @Component({
     selector: 'app-dashboard',
-    imports: [CommonModule, StatsWidget, TableModule, ButtonModule, TagModule, DialogModule, DividerModule, ChartDemo],
+    imports: [CommonModule, FormsModule, StatsWidget, TableModule, ButtonModule, TagModule, DialogModule, DividerModule, InputTextModule, TextareaModule, ChartDemo],
     template: `   
         <div class="grid grid-cols-12 gap-8">   
             <app-stats-widget class="contents" />      
             
-            <!-- Etherpad Section -->
-            <div class="col-span-12">
+            <!-- Collaboration Pads Section -->
+            <div class="col-span-12" *ngFor="let pad of pads">
                 <div class="card">
                     <div class="flex justify-between items-center mb-6">
                         <div>
-                            <h2 class="text-2xl font-semibold text-surface-900 dark:text-surface-0 m-0 mb-2">Collaboration Pad</h2>
-                            <p class="text-muted-color text-sm m-0">Live collaborative document for meeting notes and discussions</p>
+                            <h2 class="text-2xl font-semibold text-surface-900 dark:text-surface-0 m-0 mb-2">{{ pad.name }}</h2>
+                            <p class="text-muted-color text-sm m-0">{{ pad.description || 'Collaborative workspace' }}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <p-button 
+                                icon="pi pi-external-link" 
+                                [text]="true" 
+                                [rounded]="true" 
+                                severity="secondary" 
+                                pTooltip="Open in new tab"
+                                (onClick)="openPadInNewTab(pad.url)"
+                            />
+                            <p-button 
+                                icon="pi pi-trash" 
+                                [text]="true" 
+                                [rounded]="true" 
+                                severity="danger" 
+                                pTooltip="Remove pad"
+                                (onClick)="removePad(pad)"
+                            />
                         </div>
                     </div>
                     <div class="border-2 border-surface-200 dark:border-surface-700 rounded-lg overflow-hidden shadow-sm">
                         <iframe 
-                            src="https://etherpad.wikimedia.org/p/FLOSSK12NOV2025"
+                            [src]="pad.safeUrl"
                             width="100%" 
                             height="600px" 
                             frameborder="0"
-                            class="block">
+                            class="block"
+                            [title]="pad.name">
                         </iframe>
                     </div>
+                </div>
+            </div>
+            
+            <!-- Add Pad Button -->
+            <div class="col-span-12" *ngIf="pads.length === 0">
+                <div class="card text-center py-12">
+                    <i class="pi pi-plus-circle text-6xl text-muted-color mb-4"></i>
+                    <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0 mb-2">No Collaboration Pads</h3>
+                    <p class="text-muted-color mb-4">Add your first collaboration pad to get started</p>
+                    <p-button label="Add Pad" icon="pi pi-plus" (onClick)="openAddPadDialog()" />
+                </div>
+            </div>
+            
+            <!-- Floating Add Button (when pads exist) -->
+            <div class="col-span-12" *ngIf="pads.length > 0">
+                <div class="flex justify-center">
+                    <p-button 
+                        label="Add Pad" 
+                        icon="pi pi-plus" 
+                        severity="secondary" 
+                        [outlined]="true"
+                        (onClick)="openAddPadDialog()"
+                    />
                 </div>
             </div>
             
@@ -120,6 +175,66 @@ interface JoinRequest {
             </div>
             
         </div>
+        
+        <!-- Add Pad Dialog -->
+        <p-dialog [(visible)]="addPadDialogVisible" header="Add Collaboration Pad" [modal]="true" [style]="{width: '40rem'}" [contentStyle]="{'max-height': '70vh', 'overflow': 'visible'}" appendTo="body">
+            <div class="flex flex-col gap-4">
+                <div>
+                    <label for="padName" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Pad Name *</label>
+                    <input 
+                        pInputText 
+                        id="padName" 
+                        [(ngModel)]="newPad.name" 
+                        placeholder="e.g., Meeting Notes, Project Planning"
+                        class="w-full" 
+                        required
+                    />
+                </div>
+                
+                <div>
+                    <label for="padUrl" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">URL *</label>
+                    <input 
+                        pInputText 
+                        id="padUrl" 
+                        [(ngModel)]="newPad.url" 
+                        placeholder="https://example.com/pad"
+                        class="w-full" 
+                        required
+                    />
+                    <small class="text-muted-color">Enter the full URL of the collaboration pad (e.g., Etherpad, Google Docs, etc.)</small>
+                </div>
+                
+                <div>
+                    <label for="padDescription" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Description</label>
+                    <textarea 
+                        pInputTextarea 
+                        id="padDescription" 
+                        [(ngModel)]="newPad.description" 
+                        placeholder="Brief description of the pad's purpose"
+                        [rows]="3" 
+                        class="w-full"
+                    ></textarea>
+                </div>
+                
+                <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                    <div class="flex items-start gap-2">
+                        <i class="pi pi-exclamation-triangle text-yellow-600 dark:text-yellow-400 mt-0.5"></i>
+                        <div>
+                            <p class="text-sm text-yellow-800 dark:text-yellow-200 font-medium mb-1">Important Note</p>
+                            <p class="text-xs text-yellow-700 dark:text-yellow-300">
+                                Some websites may not allow embedding in iframes due to security policies. 
+                                If the pad doesn't load, try opening it in a new tab using the external link button.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-2 mt-6">
+                <p-button label="Cancel" severity="secondary" (onClick)="cancelAddPad()" />
+                <p-button label="Add Pad" [disabled]="!newPad.name || !newPad.url" (onClick)="addPad()" />
+            </div>
+        </p-dialog>
         
         <!-- View Request Dialog -->
         <p-dialog [(visible)]="viewDialogVisible" [header]="selectedRequest ? selectedRequest.firstName + ' ' + selectedRequest.lastName : 'Request Details'" [modal]="true" [style]="{width: '50rem'}" appendTo="body">
@@ -199,6 +314,23 @@ interface JoinRequest {
 export class Dashboard {
     viewDialogVisible = false;
     selectedRequest: JoinRequest | null = null;
+    
+    // Pad-related properties
+    addPadDialogVisible = false;
+    pads: Pad[] = [
+        {
+            id: 1,
+            name: 'FLOSSK Meeting Notes',
+            url: 'https://etherpad.wikimedia.org/p/FLOSSK12NOV2025',
+            description: 'Live collaborative document for meeting notes and discussions',
+            createdDate: 'Dec 10, 2025'
+        }
+    ];
+    newPad: Omit<Pad, 'id' | 'createdDate'> = {
+        name: '',
+        url: '',
+        description: ''
+    };
 
     joinRequests: JoinRequest[] = [
         {
@@ -258,6 +390,17 @@ export class Dashboard {
         }
     ];
 
+    constructor(private sanitizer: DomSanitizer) {
+        // Initialize safe URLs for existing pads
+        this.pads.forEach(pad => {
+            pad.safeUrl = this.getSafeUrl(pad.url);
+        });
+    }
+
+    getSafeUrl(url: string): SafeResourceUrl {
+        return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    }
+
     getPendingCount(): number {
         return this.joinRequests.filter(r => r.status === 'pending').length;
     }
@@ -282,5 +425,67 @@ export class Dashboard {
 
     rejectRequest(request: JoinRequest) {
         request.status = 'rejected';
+    }
+    
+    // Pad management methods
+    openAddPadDialog() {
+        this.newPad = {
+            name: '',
+            url: '',
+            description: ''
+        };
+        this.addPadDialogVisible = true;
+    }
+    
+    cancelAddPad() {
+        this.addPadDialogVisible = false;
+        this.newPad = {
+            name: '',
+            url: '',
+            description: ''
+        };
+    }
+    
+    addPad() {
+        if (!this.newPad.name || !this.newPad.url) {
+            return;
+        }
+        
+        // Ensure URL has proper protocol
+        let url = this.newPad.url.trim();
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = 'https://' + url;
+        }
+        
+        const newId = this.pads.length > 0 ? Math.max(...this.pads.map(p => p.id)) + 1 : 1;
+        
+        const pad: Pad = {
+            id: newId,
+            name: this.newPad.name.trim(),
+            url: url,
+            safeUrl: this.getSafeUrl(url),
+            description: this.newPad.description?.trim() || '',
+            createdDate: new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            })
+        };
+        
+        this.pads.push(pad);
+        this.addPadDialogVisible = false;
+        this.newPad = {
+            name: '',
+            url: '',
+            description: ''
+        };
+    }
+    
+    removePad(pad: Pad) {
+        this.pads = this.pads.filter(p => p.id !== pad.id);
+    }
+    
+    openPadInNewTab(url: string) {
+        window.open(url, '_blank');
     }
 }
