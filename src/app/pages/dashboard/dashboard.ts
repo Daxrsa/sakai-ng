@@ -26,6 +26,28 @@ interface JoinRequest {
     template: `   
         <div class="grid grid-cols-12 gap-8">   
             <app-stats-widget class="contents" />      
+            
+            <!-- Etherpad Section -->
+            <div class="col-span-12">
+                <div class="card">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-2xl font-semibold text-surface-900 dark:text-surface-0 m-0 mb-2">Collaboration Pad</h2>
+                            <p class="text-muted-color text-sm m-0">Live collaborative document for meeting notes and discussions</p>
+                        </div>
+                    </div>
+                    <div class="border-2 border-surface-200 dark:border-surface-700 rounded-lg overflow-hidden shadow-sm">
+                        <iframe 
+                            src="https://etherpad.wikimedia.org/p/FLOSSK12NOV2025"
+                            width="100%" 
+                            height="600px" 
+                            frameborder="0"
+                            class="block">
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Join Requests Section -->
             <div class="col-span-12">
                 <div class="card">
@@ -96,16 +118,9 @@ interface JoinRequest {
                     </p-table>
                 </div>
             </div>
-
+            
         </div>
-        <div class="col-span-12">  
-<iframe 
-  src="https://etherpad.wikimedia.org/p/FLOSSK12NOV2025"
-  width="100%" 
-  height="600px" 
-  frameborder="0">
-</iframe>
-</div>
+        
         <!-- View Request Dialog -->
         <p-dialog [(visible)]="viewDialogVisible" [header]="selectedRequest ? selectedRequest.firstName + ' ' + selectedRequest.lastName : 'Request Details'" [modal]="true" [style]="{width: '50rem'}" appendTo="body">
             <div *ngIf="selectedRequest" class="flex flex-col gap-4">
