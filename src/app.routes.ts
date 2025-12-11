@@ -14,6 +14,7 @@ import { Projects } from '@/pages/dashboard/components/projects';
 import { Profile } from '@/pages/dashboard/components/profile';
 import { Notifications } from '@/pages/dashboard/components/notifications';
 import { Statistics } from '@/pages/dashboard/components/statistics';
+import { Leaderboard } from '@/pages/dashboard/components/leaderboard';
 
 export const appRoutes: Routes = [
     {
@@ -30,6 +31,7 @@ export const appRoutes: Routes = [
             { path: 'events', component: Events },
             { path: 'projects', component: Projects },
             { path: 'statistics', component: Statistics },
+            { path: 'leaderboard', component: Leaderboard },
             { path: 'settings', component: Settings },
             { path: 'uikit', loadChildren: () => import('./app/pages/uikit/uikit.routes') },
             { path: 'documentation', component: Documentation },
