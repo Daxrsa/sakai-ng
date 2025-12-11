@@ -32,6 +32,7 @@ export class AppMenu {
                     { label: 'Events', icon: 'pi pi-fw pi-calendar', routerLink: ['/events'] },
                     { label: 'Projects', icon: 'pi pi-fw pi-hammer', routerLink: ['/projects'] },
                     { label: 'Hackerspace Presence', icon: 'pi pi-fw pi-wave-pulse', routerLink: ['/hackerspace-presence'] },
+                    { label: 'Statistics', icon: 'pi pi-fw pi-chart-bar', routerLink: ['/statistics'] },
                     { label: 'Settings', icon: 'pi pi-fw pi-cog', routerLink: ['/settings'] },
                     { label: 'Log Out', icon: 'pi pi-fw pi-sign-out', routerLink: ['/auth/login']},
                 ]

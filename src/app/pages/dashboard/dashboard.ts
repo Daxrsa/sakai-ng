@@ -37,13 +37,12 @@ interface Pad {
 
 @Component({
     selector: 'app-dashboard',
-    imports: [CommonModule, FormsModule, StatsWidget, TableModule, ButtonModule, TagModule, DialogModule, DividerModule, InputTextModule, TextareaModule, PanelModule, ConfirmDialogModule],
+    imports: [CommonModule, FormsModule, TableModule, ButtonModule, TagModule, DialogModule, DividerModule, InputTextModule, TextareaModule, PanelModule, ConfirmDialogModule],
     providers: [ConfirmationService],
     template: `   
         <p-confirmDialog />
         
-        <div class="grid grid-cols-12 gap-8">   
-            <app-stats-widget class="contents" />      
+        <div class="grid grid-cols-12 gap-8">     
             
             <!-- Collaboration Pads Accordion -->
             <div class="col-span-12" *ngIf="pads.length > 0">

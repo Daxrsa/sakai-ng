@@ -13,6 +13,7 @@ import { Announcements } from '@/pages/dashboard/components/announcements';
 import { Projects } from '@/pages/dashboard/components/projects';
 import { Profile } from '@/pages/dashboard/components/profile';
 import { Notifications } from '@/pages/dashboard/components/notifications';
+import { Statistics } from '@/pages/dashboard/components/statistics';
 
 export const appRoutes: Routes = [
     {
@@ -28,6 +29,7 @@ export const appRoutes: Routes = [
             { path: 'hackerspace-presence', component: HackerspacePresence },
             { path: 'events', component: Events },
             { path: 'projects', component: Projects },
+            { path: 'statistics', component: Statistics },
             { path: 'settings', component: Settings },
             { path: 'uikit', loadChildren: () => import('./app/pages/uikit/uikit.routes') },
             { path: 'documentation', component: Documentation },
