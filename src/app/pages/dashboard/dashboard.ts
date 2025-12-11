@@ -11,6 +11,8 @@ import { DividerModule } from 'primeng/divider';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { PanelModule } from 'primeng/panel';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
 
 interface JoinRequest {
     id: number;
@@ -35,8 +37,11 @@ interface Pad {
 
 @Component({
     selector: 'app-dashboard',
-    imports: [CommonModule, FormsModule, StatsWidget, TableModule, ButtonModule, TagModule, DialogModule, DividerModule, InputTextModule, TextareaModule, PanelModule],
+    imports: [CommonModule, FormsModule, StatsWidget, TableModule, ButtonModule, TagModule, DialogModule, DividerModule, InputTextModule, TextareaModule, PanelModule, ConfirmDialogModule],
+    providers: [ConfirmationService],
     template: `   
+        <p-confirmDialog />
+        
         <div class="grid grid-cols-12 gap-8">   
             <app-stats-widget class="contents" />      
             
@@ -52,9 +57,12 @@ interface Pad {
                     
                     <div *ngFor="let pad of pads; let i = index" class="mb-4">
                         <p-panel [header]="pad.name" [toggleable]="true" [collapsed]="true">
-                            <ng-template #headercontent>
-                                <div class="flex justify-between items-center w-full">
-                                    <span>{{ pad.name }}</span>
+                            <div class="pt-4">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="flex-1">
+                                        <p class="text-muted-color text-sm m-0 mb-2">{{ pad.description || 'Collaborative workspace' }}</p>
+                                        <small class="text-muted-color">Created: {{ pad.createdDate }}</small>
+                                    </div>
                                     <div class="flex gap-2">
                                         <p-button 
                                             icon="pi pi-external-link" 
@@ -63,7 +71,16 @@ interface Pad {
                                             size="small"
                                             severity="secondary" 
                                             pTooltip="Open in new tab"
-                                            (onClick)="openPadInNewTab(pad.url); $event.stopPropagation()"
+                                            (onClick)="openPadInNewTab(pad.url)"
+                                        />
+                                        <p-button 
+                                            icon="pi pi-pencil" 
+                                            [text]="true" 
+                                            [rounded]="true" 
+                                            size="small"
+                                            severity="info" 
+                                            pTooltip="Edit pad"
+                                            (onClick)="openEditPadDialog(pad)"
                                         />
                                         <p-button 
                                             icon="pi pi-trash" 
@@ -71,17 +88,10 @@ interface Pad {
                                             [rounded]="true" 
                                             size="small"
                                             severity="danger" 
-                                            pTooltip="Remove pad"
-                                            (onClick)="removePad(pad); $event.stopPropagation()"
+                                            pTooltip="Delete pad"
+                                            (onClick)="confirmDeletePad(pad)"
                                         />
                                     </div>
-                                </div>
-                            </ng-template>
-                            
-                            <div class="pt-4">
-                                <div class="flex justify-between items-center mb-4">
-                                    <p class="text-muted-color text-sm m-0 mb-2">{{ pad.description || 'Collaborative workspace' }}</p>
-                                    <small class="text-muted-color">Created: {{ pad.createdDate }}</small>
                                 </div>
                                 
                                 <div class="border-2 border-surface-200 dark:border-surface-700 rounded-lg overflow-hidden shadow-sm">
@@ -196,8 +206,8 @@ interface Pad {
             
         </div>
         
-        <!-- Add Pad Dialog -->
-        <p-dialog [(visible)]="addPadDialogVisible" header="Add Collaboration Pad" [modal]="true" [style]="{width: '40rem'}" [contentStyle]="{'max-height': '70vh', 'overflow': 'visible'}" appendTo="body">
+        <!-- Add/Edit Pad Dialog -->
+        <p-dialog [(visible)]="addPadDialogVisible" [header]="padDialogMode === 'add' ? 'Add Collaboration Pad' : 'Edit Collaboration Pad'" [modal]="true" [style]="{width: '40rem'}" [contentStyle]="{'max-height': '70vh', 'overflow': 'visible'}" appendTo="body">
             <div class="flex flex-col gap-4">
                 <div>
                     <label for="padName" class="block text-surface-900 dark:text-surface-0 font-medium mb-2">Pad Name *</label>
@@ -251,8 +261,8 @@ interface Pad {
             </div>
             
             <div class="flex justify-end gap-2 mt-6">
-                <p-button label="Cancel" severity="secondary" (onClick)="cancelAddPad()" />
-                <p-button label="Add Pad" [disabled]="!newPad.name || !newPad.url" (onClick)="addPad()" />
+                <p-button label="Cancel" severity="secondary" (onClick)="cancelPadDialog()" />
+                <p-button [label]="padDialogMode === 'add' ? 'Add Pad' : 'Update Pad'" [disabled]="!newPad.name || !newPad.url" (onClick)="savePad()" />
             </div>
         </p-dialog>
         
@@ -337,6 +347,8 @@ export class Dashboard {
     
     // Pad-related properties
     addPadDialogVisible = false;
+    padDialogMode: 'add' | 'edit' = 'add';
+    currentEditingPad: Pad | null = null;
     pads: Pad[] = [
         {
             id: 1,
@@ -410,7 +422,10 @@ export class Dashboard {
         }
     ];
 
-    constructor(private sanitizer: DomSanitizer) {
+    constructor(
+        private sanitizer: DomSanitizer, 
+        private confirmationService: ConfirmationService
+    ) {
         // Initialize safe URLs for existing pads
         this.pads.forEach(pad => {
             pad.safeUrl = this.getSafeUrl(pad.url);
@@ -449,6 +464,8 @@ export class Dashboard {
     
     // Pad management methods
     openAddPadDialog() {
+        this.padDialogMode = 'add';
+        this.currentEditingPad = null;
         this.newPad = {
             name: '',
             url: '',
@@ -457,16 +474,41 @@ export class Dashboard {
         this.addPadDialogVisible = true;
     }
     
-    cancelAddPad() {
+    openEditPadDialog(pad: Pad) {
+        this.padDialogMode = 'edit';
+        this.currentEditingPad = pad;
+        this.newPad = {
+            name: pad.name,
+            url: pad.url,
+            description: pad.description || ''
+        };
+        this.addPadDialogVisible = true;
+    }
+    
+    cancelPadDialog() {
         this.addPadDialogVisible = false;
+        this.padDialogMode = 'add';
+        this.currentEditingPad = null;
         this.newPad = {
             name: '',
             url: '',
             description: ''
         };
     }
+
+    confirmDeletePad(pad: Pad) {
+        this.confirmationService.confirm({
+            message: `Are you sure you want to delete the pad "${pad.name}"?`,
+            header: 'Delete Confirmation',
+            icon: 'pi pi-exclamation-triangle',
+            acceptButtonStyleClass: 'p-button-danger',
+            accept: () => {
+                this.removePad(pad);
+            }
+        });
+    }
     
-    addPad() {
+    savePad() {
         if (!this.newPad.name || !this.newPad.url) {
             return;
         }
@@ -477,23 +519,41 @@ export class Dashboard {
             url = 'https://' + url;
         }
         
-        const newId = this.pads.length > 0 ? Math.max(...this.pads.map(p => p.id)) + 1 : 1;
+        if (this.padDialogMode === 'add') {
+            // Add new pad
+            const newId = this.pads.length > 0 ? Math.max(...this.pads.map(p => p.id)) + 1 : 1;
+            
+            const pad: Pad = {
+                id: newId,
+                name: this.newPad.name.trim(),
+                url: url,
+                safeUrl: this.getSafeUrl(url),
+                description: this.newPad.description?.trim() || '',
+                createdDate: new Date().toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                })
+            };
+            
+            this.pads.push(pad);
+        } else if (this.padDialogMode === 'edit' && this.currentEditingPad) {
+            // Edit existing pad
+            const padIndex = this.pads.findIndex(p => p.id === this.currentEditingPad!.id);
+            if (padIndex !== -1) {
+                this.pads[padIndex] = {
+                    ...this.pads[padIndex],
+                    name: this.newPad.name.trim(),
+                    url: url,
+                    safeUrl: this.getSafeUrl(url),
+                    description: this.newPad.description?.trim() || ''
+                };
+            }
+        }
         
-        const pad: Pad = {
-            id: newId,
-            name: this.newPad.name.trim(),
-            url: url,
-            safeUrl: this.getSafeUrl(url),
-            description: this.newPad.description?.trim() || '',
-            createdDate: new Date().toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric' 
-            })
-        };
-        
-        this.pads.push(pad);
         this.addPadDialogVisible = false;
+        this.padDialogMode = 'add';
+        this.currentEditingPad = null;
         this.newPad = {
             name: '',
             url: '',
