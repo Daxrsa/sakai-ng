@@ -18,6 +18,8 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService } from 'primeng/api';
+import { HttpClient } from '@angular/common/http';
+import { catchError, of } from 'rxjs';
 
 interface Member {
     name: string;
@@ -54,6 +56,31 @@ interface Project {
     participants: Member[];
     objectives: Objective[];
     resources?: Resource[];
+    githubRepo?: string; // GitHub repository URL for tracking commits
+}
+
+interface GitHubCommit {
+    sha: string;
+    commit: {
+        author: {
+            name: string;
+            email: string;
+            date: string;
+        };
+        message: string;
+    };
+    html_url: string;
+    author?: {
+        login: string;
+        avatar_url: string;
+    };
+}
+
+interface GitHubRepo {
+    name: string;
+    full_name: string;
+    html_url: string;
+    updated_at: string;
 }
 
 @Component({
@@ -198,7 +225,7 @@ interface Project {
                             <p-tag [value]="getProjectsByStatus('upcoming').length.toString()" severity="warn"></p-tag>
                         </div>
                         <div class="flex flex-col gap-3 min-h-32">
-                            <div *ngFor="let project of getProjectsByStatus('upcoming')" pDraggable="projects" (onDragStart)="dragStart(project)" (onDragEnd)="dragEnd()" class="bg-surface-0 dark:bg-surface-900 border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer" (click)="selectedProject = project">
+                            <div *ngFor="let project of getProjectsByStatus('upcoming')" pDraggable="projects" (onDragStart)="dragStart(project)" (onDragEnd)="dragEnd()" class="bg-surface-0 dark:bg-surface-900 border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer" (click)="selectProject(project)">
                                 <div class="flex justify-between items-start mb-3">
                                     <h4 class="text-base font-semibold text-surface-900 dark:text-surface-0 m-0">
                                         {{ project.name }}
@@ -273,7 +300,7 @@ interface Project {
                             <p-tag [value]="getProjectsByStatus('in-progress').length.toString()" severity="info"></p-tag>
                         </div>
                         <div class="flex flex-col gap-3 min-h-32">
-                            <div *ngFor="let project of getProjectsByStatus('in-progress')" pDraggable="projects" (onDragStart)="dragStart(project)" (onDragEnd)="dragEnd()" class="bg-surface-0 dark:bg-surface-900 border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer" (click)="selectedProject = project">
+                            <div *ngFor="let project of getProjectsByStatus('in-progress')" pDraggable="projects" (onDragStart)="dragStart(project)" (onDragEnd)="dragEnd()" class="bg-surface-0 dark:bg-surface-900 border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer" (click)="selectProject(project)">
                                 <div class="flex justify-between items-start mb-3">
                                     <h4 class="text-base font-semibold text-surface-900 dark:text-surface-0 m-0">
                                         {{ project.name }}
@@ -351,7 +378,7 @@ interface Project {
                             <p-tag [value]="getProjectsByStatus('completed').length.toString()" severity="success"></p-tag>
                         </div>
                         <div class="flex flex-col gap-3 min-h-32">
-                            <div *ngFor="let project of getProjectsByStatus('completed')" pDraggable="projects" (onDragStart)="dragStart(project)" (onDragEnd)="dragEnd()" class="bg-surface-0 dark:bg-surface-900 border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer" (click)="selectedProject = project">
+                            <div *ngFor="let project of getProjectsByStatus('completed')" pDraggable="projects" (onDragStart)="dragStart(project)" (onDragEnd)="dragEnd()" class="bg-surface-0 dark:bg-surface-900 border border-surface rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer" (click)="selectProject(project)">
                                 <div class="flex justify-between items-start mb-3">
                                     <div class="flex items-baseline gap-2 flex-1">
                                         <h4 class="text-base font-semibold text-surface-900 dark:text-surface-0 m-0">
@@ -503,7 +530,7 @@ interface Project {
                             </div>
                         </div>
                         
-                        <div>
+                        <div class="mb-6">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="text-lg font-semibold m-0">Resources</h3>
                                 <p-button icon="pi pi-plus" size="small" [text]="true" [rounded]="true" (onClick)="openAddResourceDialog()" />
@@ -530,6 +557,119 @@ interface Project {
                                 </div>
                             </div>
                         </div>
+
+                        <!-- GitHub Commits Section -->
+                        <div *ngIf="selectedProject.githubRepo">
+                            <div class="flex justify-between items-center mb-4">
+                                <div class="flex flex-col">
+                                    <h3 class="text-lg font-semibold m-0 flex items-baseline gap-2">
+                                        <i style="font-size: 1.5rem" class="pi pi-github text-xl"></i>
+                                        GitHub Commits
+                                    </h3>
+                                    <span *ngIf="getTotalCommitsCount(selectedProject.id) > 0" class="text-xs text-muted-color">
+                                        Showing {{ getTotalCommitsCount(selectedProject.id) }} commits
+                                    </span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <p-button 
+                                        icon="pi pi-refresh" 
+                                        size="small" 
+                                        [text]="true" 
+                                        [rounded]="true" 
+                                        (onClick)="loadGithubCommits(selectedProject)"
+                                        [loading]="isLoadingGithubCommits(selectedProject.id)"
+                                    />
+                                    <a [href]="getGithubRepoUrl(selectedProject.githubRepo)" target="_blank">
+                                        <p-button 
+                                            icon="pi pi-external-link" 
+                                            size="small" 
+                                            [text]="true" 
+                                            [rounded]="true"
+                                            severity="secondary"
+                                        />
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <div *ngIf="isLoadingGithubCommits(selectedProject.id)" class="text-center text-muted-color text-sm py-4">
+                                    <i class="pi pi-spin pi-spinner"></i> Loading commits...
+                                </div>
+
+                                <div *ngIf="getGithubError(selectedProject.id)" class="text-center text-red-500 text-sm py-4">
+                                    <i class="pi pi-exclamation-triangle"></i>
+                                    {{ getGithubError(selectedProject.id) }}
+                                </div>
+
+                                <div *ngIf="!isLoadingGithubCommits(selectedProject.id) && !getGithubError(selectedProject.id)">
+                                    <div *ngFor="let commit of getGithubCommits(selectedProject.id)" class="p-3 bg-surface-50 dark:bg-surface-800 rounded-lg">
+                                        <div class="flex items-start gap-3">
+                                            <p-avatar 
+                                                *ngIf="commit.author?.avatar_url; else defaultAvatar"
+                                                [image]="commit.author!.avatar_url" 
+                                                shape="circle" 
+                                                size="normal"
+                                            />
+                                            <ng-template #defaultAvatar>
+                                                <p-avatar 
+                                                    icon="pi pi-user" 
+                                                    shape="circle" 
+                                                    size="normal"
+                                                    styleClass="bg-surface-300"
+                                                />
+                                            </ng-template>
+                                            
+                                            <div class="flex-1 min-w-0">
+                                                <a [href]="commit.html_url" target="_blank" class="text-sm font-medium text-surface-900 dark:text-surface-0 hover:text-primary hover:underline line-clamp-2">
+                                                    {{ truncateCommitMessage(commit.commit.message) }}
+                                                </a>
+                                                <div class="flex items-center gap-2 mt-1 text-xs text-muted-color">
+                                                    <span>{{ commit.author?.login || commit.commit.author.name }}</span>
+                                                    <span>•</span>
+                                                    <span>{{ formatCommitDate(commit.commit.author.date) }}</span>
+                                                </div>
+                                                <div class="text-xs text-muted-color font-mono mt-1">
+                                                    {{ commit.sha.substring(0, 7) }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Load More Button -->
+                                    <div *ngIf="getGithubCommits(selectedProject.id).length > 0 && hasMoreCommits(selectedProject.id)" class="text-center py-3">
+                                        <p-button 
+                                            label="Load More Commits" 
+                                            icon="pi pi-chevron-down" 
+                                            size="small"
+                                            [outlined]="true"
+                                            [loading]="isLoadingMoreCommits(selectedProject.id)"
+                                            (onClick)="loadMoreCommits(selectedProject)"
+                                        />
+                                    </div>
+
+                                    <!-- Loading More Indicator -->
+                                    <div *ngIf="isLoadingMoreCommits(selectedProject.id)" class="text-center text-muted-color text-sm py-3">
+                                        <i class="pi pi-spin pi-spinner"></i> Loading more commits...
+                                    </div>
+
+                                    <!-- No commits found -->
+                                    <div *ngIf="getGithubCommits(selectedProject.id).length === 0 && !isLoadingGithubCommits(selectedProject.id) && !getGithubError(selectedProject.id)" class="text-center text-muted-color text-sm py-4">
+                                        <p-button 
+                                            label="Load Commits" 
+                                            icon="pi pi-github" 
+                                            size="small"
+                                            [outlined]="true"
+                                            (onClick)="loadGithubCommits(selectedProject)"
+                                        />
+                                    </div>
+
+                                    <!-- End of commits indicator -->
+                                    <div *ngIf="getGithubCommits(selectedProject.id).length > 0 && !hasMoreCommits(selectedProject.id)" class="text-center text-muted-color text-xs py-2">
+                                        <i class="pi pi-check-circle"></i> All commits loaded
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -537,7 +677,7 @@ interface Project {
     `
 })
 export class Projects {
-    constructor(private confirmationService: ConfirmationService) {}
+    constructor(private confirmationService: ConfirmationService, private http: HttpClient) {}
     
     // Current logged-in user
     currentUser: Member = {
@@ -768,6 +908,7 @@ export class Projects {
             startDate: 'Sep 1, 2025',
             endDate: 'Nov 30, 2025',
             progress: 100,
+            githubRepo: 'Daxrsa/sakai-ng',
             participants: [
                 { name: 'Bernardo Dominic', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/bernardodominic.png', role: 'Team Captain' },
                 { name: 'Amy Elsner', avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png', role: 'Programmer' },
@@ -1140,6 +1281,163 @@ export class Projects {
         event.stopPropagation();
         if (objective.members) {
             objective.members = objective.members.filter(m => m.name !== this.currentUser.name);
+        }
+    }
+
+    // GitHub Integration Properties
+    githubCommits: Map<number, GitHubCommit[]> = new Map();
+    loadingGithubCommits: Set<number> = new Set();
+    githubError: Map<number, string> = new Map();
+    githubPagination: Map<number, { currentPage: number; hasMore: boolean; totalCommits: number }> = new Map();
+    loadingMoreCommits: Set<number> = new Set();
+
+    // GitHub Integration Methods
+    loadGithubCommits(project: Project, loadMore: boolean = false) {
+        if (!project.githubRepo || this.loadingGithubCommits.has(project.id)) {
+            return;
+        }
+
+        if (loadMore) {
+            this.loadingMoreCommits.add(project.id);
+        } else {
+            this.loadingGithubCommits.add(project.id);
+            this.githubError.delete(project.id);
+            // Reset pagination for fresh load
+            this.githubPagination.set(project.id, { currentPage: 1, hasMore: true, totalCommits: 0 });
+        }
+
+        // Extract owner and repo from the githubRepo format (owner/repo)
+        const [owner, repo] = project.githubRepo.split('/');
+        
+        if (!owner || !repo) {
+            this.githubError.set(project.id, 'Invalid GitHub repository format');
+            this.loadingGithubCommits.delete(project.id);
+            this.loadingMoreCommits.delete(project.id);
+            return;
+        }
+
+        const paginationInfo = this.githubPagination.get(project.id) || { currentPage: 1, hasMore: true, totalCommits: 0 };
+        const page = loadMore ? paginationInfo.currentPage : 1;
+        const perPage = 10; // Load more commits per page
+        
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/commits?per_page=${perPage}&page=${page}`;
+
+        this.http.get<GitHubCommit[]>(apiUrl, { observe: 'response' })
+            .pipe(
+                catchError(error => {
+                    console.error('GitHub API Error:', error);
+                    if (error.status === 403) {
+                        this.githubError.set(project.id, 'GitHub API rate limit exceeded. Please try again later.');
+                    } else if (error.status === 404) {
+                        this.githubError.set(project.id, 'Repository not found or not accessible');
+                    } else {
+                        this.githubError.set(project.id, 'Failed to load GitHub commits');
+                    }
+                    return of(null);
+                })
+            )
+            .subscribe({
+                next: (response) => {
+                    if (response && response.body) {
+                        const commits = response.body;
+                        
+                        if (loadMore) {
+                            // Append new commits to existing ones
+                            const existingCommits = this.githubCommits.get(project.id) || [];
+                            this.githubCommits.set(project.id, [...existingCommits, ...commits]);
+                        } else {
+                            // Set new commits
+                            this.githubCommits.set(project.id, commits);
+                        }
+
+                        // Update pagination info
+                        const linkHeader = response.headers.get('Link');
+                        const hasNextPage = linkHeader ? linkHeader.includes('rel="next"') : commits.length === perPage;
+                        
+                        this.githubPagination.set(project.id, {
+                            currentPage: page + 1,
+                            hasMore: hasNextPage,
+                            totalCommits: (this.githubCommits.get(project.id) || []).length
+                        });
+                    }
+                    
+                    this.loadingGithubCommits.delete(project.id);
+                    this.loadingMoreCommits.delete(project.id);
+                },
+                error: (error) => {
+                    console.error('Error loading GitHub commits:', error);
+                    this.githubError.set(project.id, 'Failed to load GitHub commits');
+                    this.loadingGithubCommits.delete(project.id);
+                    this.loadingMoreCommits.delete(project.id);
+                }
+            });
+    }
+
+    getGithubCommits(projectId: number): GitHubCommit[] {
+        return this.githubCommits.get(projectId) || [];
+    }
+
+    isLoadingGithubCommits(projectId: number): boolean {
+        return this.loadingGithubCommits.has(projectId);
+    }
+
+    getGithubError(projectId: number): string | null {
+        return this.githubError.get(projectId) || null;
+    }
+
+    hasMoreCommits(projectId: number): boolean {
+        const paginationInfo = this.githubPagination.get(projectId);
+        return paginationInfo ? paginationInfo.hasMore : false;
+    }
+
+    isLoadingMoreCommits(projectId: number): boolean {
+        return this.loadingMoreCommits.has(projectId);
+    }
+
+    getTotalCommitsCount(projectId: number): number {
+        const paginationInfo = this.githubPagination.get(projectId);
+        return paginationInfo ? paginationInfo.totalCommits : 0;
+    }
+
+    loadMoreCommits(project: Project) {
+        if (!this.hasMoreCommits(project.id) || this.isLoadingMoreCommits(project.id)) {
+            return;
+        }
+        this.loadGithubCommits(project, true);
+    }
+
+    formatCommitDate(dateString: string): string {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+        if (diffDays > 0) {
+            return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+        } else if (diffHours > 0) {
+            return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+        } else if (diffMinutes > 0) {
+            return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
+        } else {
+            return 'Just now';
+        }
+    }
+
+    getGithubRepoUrl(githubRepo: string): string {
+        return `https://github.com/${githubRepo}`;
+    }
+
+    truncateCommitMessage(message: string, maxLength: number = 60): string {
+        if (message.length <= maxLength) return message;
+        return message.substring(0, maxLength) + '...';
+    }
+
+    selectProject(project: Project) {
+        this.selectedProject = project;
+        if (project.githubRepo) {
+            this.loadGithubCommits(project);
         }
     }
 }
