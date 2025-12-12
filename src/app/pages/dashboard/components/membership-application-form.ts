@@ -195,7 +195,7 @@ import { DatePickerModule } from 'primeng/datepicker';
                         <!-- Parent/Guardian -->
                         <div class="field mb-4">
                             <label for="parentGuardian" class="block font-bold mb-2">
-                                Parent/Guardian <span class="font-normal">(If under 14 y/o)</span>
+                                Parent/Guardian Signature: <span class="font-normal">(If under 14 y/o)</span>
                             </label>
                             <input 
                                 pInputText 
