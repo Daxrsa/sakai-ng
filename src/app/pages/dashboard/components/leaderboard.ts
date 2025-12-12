@@ -13,6 +13,9 @@ interface User {
     contributions?: number;
     projectsCompleted?: number;
     eventsAttended?: number;
+    codeContributions?: number;
+    hardwareContributions?: number;
+    eventContributions?: number;
 }
 
 @Component({
@@ -63,14 +66,22 @@ interface User {
                             </div>
                             <div class="grid grid-cols-2 gap-2 text-sm">
                                 <div>
-                                    <div class="text-muted-color">Projects</div>
-                                    <div class="font-bold text-lg">{{ contributor.projectsCompleted }}</div>
+                                    <div class="text-muted-color">Code</div>
+                                    <div class="font-bold text-lg text-blue-600 dark:text-blue-400">{{ contributor.codeContributions }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-muted-color">Hardware</div>
+                                    <div class="font-bold text-lg text-orange-600 dark:text-orange-400">{{ contributor.hardwareContributions }}</div>
                                 </div>
                                 <div>
                                     <div class="text-muted-color">Events</div>
-                                    <div class="font-bold text-lg">{{ contributor.eventsAttended }}</div>
+                                    <div class="font-bold text-lg text-green-600 dark:text-green-400">{{ contributor.eventContributions }}</div>
                                 </div>
-                                <div class="col-span-2">
+                                <div>
+                                    <div class="text-muted-color">Projects</div>
+                                    <div class="font-bold text-lg text-purple-600 dark:text-purple-400">{{ contributor.projectsCompleted }}</div>
+                                </div>
+                                <div class="col-span-2 mt-2 pt-2 border-t border-surface">
                                     <div class="text-muted-color">Total Contributions</div>
                                     <div class="font-bold text-xl text-primary">{{ contributor.contributions }}</div>
                                 </div>
@@ -108,7 +119,10 @@ export class Leaderboard {
             avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png',
             contributions: 127,
             projectsCompleted: 15,
-            eventsAttended: 22
+            eventsAttended: 22,
+            codeContributions: 52,
+            hardwareContributions: 38,
+            eventContributions: 37
         },
         {
             id: 2,
@@ -120,7 +134,10 @@ export class Leaderboard {
             avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/annafali.png',
             contributions: 98,
             projectsCompleted: 12,
-            eventsAttended: 18
+            eventsAttended: 18,
+            codeContributions: 65,
+            hardwareContributions: 12,
+            eventContributions: 21
         },
         {
             id: 3,
@@ -132,7 +149,10 @@ export class Leaderboard {
             avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/asiyajavayant.png',
             contributions: 85,
             projectsCompleted: 10,
-            eventsAttended: 15
+            eventsAttended: 15,
+            codeContributions: 48,
+            hardwareContributions: 15,
+            eventContributions: 22
         },
         {
             id: 4,
@@ -144,7 +164,10 @@ export class Leaderboard {
             avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/bernardodominic.png',
             contributions: 73,
             projectsCompleted: 9,
-            eventsAttended: 13
+            eventsAttended: 13,
+            codeContributions: 18,
+            hardwareContributions: 42,
+            eventContributions: 13
         },
         {
             id: 5,
@@ -156,7 +179,10 @@ export class Leaderboard {
             avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/elwinsharvill.png',
             contributions: 64,
             projectsCompleted: 8,
-            eventsAttended: 12
+            eventsAttended: 12,
+            codeContributions: 28,
+            hardwareContributions: 24,
+            eventContributions: 12
         },
         {
             id: 6,
@@ -168,7 +194,10 @@ export class Leaderboard {
             avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/ionibowcher.png',
             contributions: 52,
             projectsCompleted: 7,
-            eventsAttended: 10
+            eventsAttended: 10,
+            codeContributions: 15,
+            hardwareContributions: 27,
+            eventContributions: 10
         },
         {
             id: 7,
@@ -180,7 +209,10 @@ export class Leaderboard {
             avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/xuxuefeng.png',
             contributions: 38,
             projectsCompleted: 5,
-            eventsAttended: 8
+            eventsAttended: 8,
+            codeContributions: 22,
+            hardwareContributions: 8,
+            eventContributions: 8
         },
         {
             id: 8,
@@ -192,7 +224,10 @@ export class Leaderboard {
             avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/ivanmagalhaes.png',
             contributions: 29,
             projectsCompleted: 4,
-            eventsAttended: 6
+            eventsAttended: 6,
+            codeContributions: 16,
+            hardwareContributions: 7,
+            eventContributions: 6
         },
         {
             id: 9,
@@ -204,7 +239,10 @@ export class Leaderboard {
             avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/onyamalimba.png',
             contributions: 18,
             projectsCompleted: 3,
-            eventsAttended: 4
+            eventsAttended: 4,
+            codeContributions: 10,
+            hardwareContributions: 4,
+            eventContributions: 4
         },
         {
             id: 10,
@@ -216,7 +254,10 @@ export class Leaderboard {
             avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/stephenshaw.png',
             contributions: 12,
             projectsCompleted: 2,
-            eventsAttended: 3
+            eventsAttended: 3,
+            codeContributions: 6,
+            hardwareContributions: 3,
+            eventContributions: 3
         },
         {
             id: 11,
@@ -228,7 +269,10 @@ export class Leaderboard {
             avatar: 'https://primefaces.org/cdn/primeng/images/demo/avatar/walterwhite.png',
             contributions: 5,
             projectsCompleted: 1,
-            eventsAttended: 2
+            eventsAttended: 2,
+            codeContributions: 2,
+            hardwareContributions: 1,
+            eventContributions: 2
         }
     ];
 }

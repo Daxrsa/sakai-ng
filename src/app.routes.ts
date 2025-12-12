@@ -15,6 +15,7 @@ import { Profile } from '@/pages/dashboard/components/profile';
 import { Notifications } from '@/pages/dashboard/components/notifications';
 import { Statistics } from '@/pages/dashboard/components/statistics';
 import { Leaderboard } from '@/pages/dashboard/components/leaderboard';
+import { MembershipApplicationForm } from '@/pages/dashboard/components/membership-application-form';
 
 export const appRoutes: Routes = [
     {
@@ -38,6 +39,7 @@ export const appRoutes: Routes = [
             { path: 'pages', loadChildren: () => import('./app/pages/pages.routes') }
         ]
     },
+    { path: 'apply', component: MembershipApplicationForm },
     { path: 'landing', component: Landing },
     { path: 'notfound', component: Notfound },
     { path: 'auth', loadChildren: () => import('./app/pages/auth/auth.routes') },
