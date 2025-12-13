@@ -188,21 +188,46 @@ import { DatePickerModule } from 'primeng/datepicker';
                                 id="applicantSignature" 
                                 [(ngModel)]="formData.applicantSignature" 
                                 name="applicantSignature" 
+                                #applicantSignature="ngModel"
                                 class="w-full"
-                                required />
+                                [disabled]="!formData.applicantDateofBirth || isUnder14()"
+                                [class.ng-invalid]="applicantSignature.invalid && applicantSignature.touched"
+                                [required]="!isUnder14()" />
+                            <small *ngIf="!formData.applicantDateofBirth" class="text-orange-500">
+                                Please fill in Date of Birth first.
+                            </small>
+                            <small *ngIf="formData.applicantDateofBirth && isUnder14()" class="text-orange-500">
+                                Applicants under 14 require parent/guardian signature instead.
+                            </small>
+                            <small *ngIf="applicantSignature.invalid && applicantSignature.touched && formData.applicantDateofBirth && !isUnder14()" class="text-red-500">
+                                <span *ngIf="applicantSignature.errors?.['required']">Signature is required.</span>
+                            </small>
                         </div>
 
                         <!-- Parent/Guardian -->
                         <div class="field mb-4">
                             <label for="parentGuardian" class="block font-bold mb-2">
-                                Parent/Guardian Signature: <span class="font-normal">(If under 14 y/o)</span>
+                                Parent/Guardian Signature: <span class="font-normal">(Required if under 14 y/o)</span>
                             </label>
                             <input 
                                 pInputText 
                                 id="parentGuardian" 
                                 [(ngModel)]="formData.parentGuardian" 
                                 name="parentGuardian" 
-                                class="w-full" />
+                                #parentGuardian="ngModel"
+                                class="w-full"
+                                [disabled]="!formData.applicantDateofBirth || !isUnder14()"
+                                [class.ng-invalid]="parentGuardian.invalid && parentGuardian.touched"
+                                [required]="isUnder14()" />
+                            <small *ngIf="!formData.applicantDateofBirth" class="text-orange-500">
+                                Please fill in Date of Birth first.
+                            </small>
+                            <small *ngIf="formData.applicantDateofBirth && !isUnder14()" class="text-orange-500">
+                                Parent/guardian signature not required for applicants 14 or older.
+                            </small>
+                            <small *ngIf="parentGuardian.invalid && parentGuardian.touched && isUnder14()" class="text-red-500">
+                                <span *ngIf="parentGuardian.errors?.['required']">Parent/Guardian signature is required for applicants under 14.</span>
+                            </small>
                         </div>
 
                     </div>
@@ -257,6 +282,23 @@ export class MembershipApplicationForm {
         applicantDateofBirth: '',
         boardMember: '',
     };
+
+    isUnder14(): boolean {
+        if (!this.formData.applicantDateofBirth) {
+            return false;
+        }
+        
+        const birthDate = new Date(this.formData.applicantDateofBirth);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        
+        return age < 14;
+    }
 
     onSubmit() {
         console.log('Form submitted:', this.formData);
